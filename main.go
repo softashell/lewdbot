@@ -34,7 +34,6 @@ func learnFileLines(path string) error {
 
 	s := bufio.NewScanner(bufio.NewReader(f))
 	for s.Scan() {
-		log.Print(s.Text())
 		lewdbrain.Learn(CleanMessage(s.Text()))
 	}
 
@@ -85,7 +84,7 @@ func LogMessage(client *steam.Client, chatterid steamid.SteamId, message string,
 	filename := fmt.Sprintf("%s", chatterid.ToUint64())
 	text := fmt.Sprintf("%s: %s\nlewdbot: %s\n", name, message, reply)
 
-	log.Printf(text)
+	log.Print(text)
 
 	f, err := os.OpenFile("chatlog.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
@@ -113,12 +112,12 @@ func LogMessage(client *steam.Client, chatterid steamid.SteamId, message string,
 func FriendState(client *steam.Client, e *steam.FriendStateEvent) {
 	switch e.Relationship {
 	case steamlang.EFriendRelationship_None:
-		log.Print(e.SteamId, " removed me from friends list")
+		log.Printf("%s removed me from friends list", e.SteamId)
 	case steamlang.EFriendRelationship_PendingInvitee:
-		log.Print(GetName(client, e.SteamId), " added me to friends list")
+		log.Printf("%s added me to friends list", GetName(client, e.SteamId))
 		client.Social.AddFriend(e.SteamId)
 	case steamlang.EFriendRelationship_Friend:
-		log.Print(GetName(client, e.SteamId), " is now a friend")
+		log.Printf("%s is now a friend", GetName(client, e.SteamId))
 		StrangerList.Remove(e.SteamId)
 	}
 }
@@ -128,9 +127,9 @@ func AddFriends(client *steam.Client, e *steam.FriendsListEvent) {
 	for id, friend := range client.Social.Friends.GetCopy() {
 		switch friend.Relationship {
 		case steamlang.EFriendRelationship_RequestInitiator:
-			log.Print(GetName(client, id), " (", id, ") still hasn't accepted invite, consider removing")
+			log.Printf("%s %s still hasn't accepted invite, consider removing", GetName(client, id), id)
 		case steamlang.EFriendRelationship_PendingInvitee:
-			log.Print(GetName(client, id), " (", id, ") added me to friends list")
+			log.Printf("%s %s added me to friends list", GetName(client, id), id)
 			client.Social.AddFriend(id)
 		}
 	}
@@ -138,7 +137,7 @@ func AddFriends(client *steam.Client, e *steam.FriendsListEvent) {
 
 func ChatInviteEvent(client *steam.Client, e *steam.ChatInviteEvent) {
 	if e.ChatRoomType != steamlang.EChatRoomType_Lobby {
-		log.Print("Invited to ", e.ChatRoomName, " (", e.ChatRoomId, ") by ", GetName(client, e.PatronId), "(", e.PatronId, ")")
+		log.Printf("Invited to %s (%s) by %s %s", e.ChatRoomName, e.ChatRoomId, GetName(client, e.PatronId), e.PatronId)
 		client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "On my way~ I hope you will not keep me in your basement forever~")
 		client.Social.JoinChat(e.ChatRoomId)
 	}
@@ -146,9 +145,9 @@ func ChatInviteEvent(client *steam.Client, e *steam.ChatInviteEvent) {
 
 func ChatEnterEvent(client *steam.Client, e *steam.ChatEnterEvent) {
 	if e.EnterResponse == steamlang.EChatRoomEnterResponse_Success {
-		log.Print("Joined ", e.Name, " (", e.ChatRoomId, ")")
+		log.Printf("Joined %s (%s)", e.Name, e.ChatRoomId)
 	} else {
-		log.Print("Failed to join ", e.EnterResponse)
+		log.Printf("Failed to join %s! Respone: %s", e.ChatRoomId, e.EnterResponse)
 	}
 }
 
@@ -157,9 +156,9 @@ func ChatMemberInfo(client *steam.Client, e *steam.ChatMemberInfoEvent) {
 		if e.StateChangeInfo.ChatterActedOn == client.SteamId() {
 			switch e.StateChangeInfo.StateChange {
 			case steamlang.EChatMemberStateChange_Kicked:
-				log.Print("Kicked from ", e.ChatRoomId, " by ", GetName(client, e.StateChangeInfo.ChatterActedBy))
+				log.Printf("Kicked from %s by %s", e.ChatRoomId, GetName(client, e.StateChangeInfo.ChatterActedBy))
 			case steamlang.EChatMemberStateChange_Banned:
-				log.Print("Kicked and banned from", e.ChatRoomId, " by ", GetName(client, e.StateChangeInfo.ChatterActedBy))
+				log.Printf("Kicked and banned from %s by %s", e.ChatRoomId, GetName(client, e.StateChangeInfo.ChatterActedBy))
 			}
 		}
 	}
@@ -175,8 +174,6 @@ func GetName(client *steam.Client, friendid steamid.SteamId) string {
 	if err == nil {
 		return nerd.Name
 	}
-
-	log.Print("Unknown user:", friendid.ToString())
 
 	return "Nerdgin"
 }
@@ -195,8 +192,6 @@ func PersonaStateEvent(client *steam.Client, e *steam.PersonaStateEvent) {
 	if e.State == steamlang.EPersonaState_Offline {
 		return // Most likely a group update
 	}
-
-	log.Print("PersonaStateEvent: ", e.Name)
 
 	StrangerList.Add(
 		socialcache.Friend{e.FriendId, e.Name, e.Avatar, steamlang.EFriendRelationship_None,
@@ -264,7 +259,6 @@ func main() {
 		case *steam.ChatMemberInfoEvent:
 			go ChatMemberInfo(client, e)
 		case *steam.FriendAddedEvent:
-			log.Print("FriendAddedEvent:", e)
 			client.Social.SendMessage(e.SteamId, steamlang.EChatEntryType_ChatMsg, "Looking forward to working with you~ fu fu fu~")
 		case *steam.PersonaStateEvent:
 			go PersonaStateEvent(client, e)
