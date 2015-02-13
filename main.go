@@ -81,7 +81,7 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 
 func LogMessage(client *steam.Client, chatterid steamid.SteamId, message string, reply string) {
 	name := GetName(client, chatterid)
-	filename := fmt.Sprintf("%s", chatterid.ToUint64())
+	filename := fmt.Sprintf("%d", chatterid.ToUint64())
 	text := fmt.Sprintf("%s: %s\nlewdbot: %s\n", name, message, reply)
 
 	log.Print(text)
@@ -90,7 +90,6 @@ func LogMessage(client *steam.Client, chatterid steamid.SteamId, message string,
 	if err != nil {
 		panic(err)
 	}
-
 	defer f.Close()
 
 	if _, err = f.WriteString(fmt.Sprintf("%s\n", message)); err != nil {
@@ -101,7 +100,6 @@ func LogMessage(client *steam.Client, chatterid steamid.SteamId, message string,
 	if err != nil {
 		panic(err)
 	}
-
 	defer f.Close()
 
 	if _, err = f.WriteString(text); err != nil {
@@ -209,11 +207,10 @@ func main() {
 	os.Mkdir("./logs", 0777)
 
 	cobebrain, err := cobe.OpenCobe2Brain("./data/lewdbot.brain")
-	defer cobebrain.Close()
-
 	if err != nil {
 		log.Fatalf("Opening brain file: %s", err)
 	}
+	defer cobebrain.Close()
 
 	lewdbrain = cobebrain
 
@@ -221,8 +218,7 @@ func main() {
 
 	file, _ := os.Open("./config.json")
 	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&configuration)
-	if err != nil {
+	if err = decoder.Decode(&configuration); err != nil {
 		log.Fatal(err)
 	}
 
