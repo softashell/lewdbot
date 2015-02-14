@@ -2,3 +2,4 @@ data/
 logs/
 /config.json
 /chatlog.txt
+/sentry
