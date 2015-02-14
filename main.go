@@ -193,7 +193,7 @@ func PersonaStateEvent(client *steam.Client, e *steam.PersonaStateEvent) {
 
 	StrangerList.Add(
 		socialcache.Friend{e.FriendId, e.Name, e.Avatar, steamlang.EFriendRelationship_None,
-			steamlang.EPersonaState_Online, steamlang.EPersonaStateFlag_HasRichPresence, e.GameAppId, e.GameId, e.GameName})
+			e.State, e.StateFlags, e.GameAppId, e.GameId, e.GameName})
 
 	if e.StatusFlags&steamlang.EClientPersonaStateFlag_PlayerName != 0 {
 		StrangerList.SetName(e.FriendId, e.Name)
