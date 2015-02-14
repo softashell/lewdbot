@@ -34,28 +34,60 @@ func learnFileLines(path string) error {
 
 	s := bufio.NewScanner(bufio.NewReader(f))
 	for s.Scan() {
-		lewdbrain.Learn(CleanMessage(s.Text()))
+		text := CleanMessage(s.Text())
+		log.Print(text)
+		//lewdbrain.Learn(text)
+		/*
+			sentences := regexp.MustCompile(`(\.+?[\n\.!?]+)`).Split(text, -1)
+			for index, sentence := range sentences {
+				sentence = strings.TrimSpace(sentence)
+				if len(sentence) < 2 {
+					continue
+				}
+				log.Printf("[%d] %s", index, sentence)
+			}
+		*/
 	}
 
 	return nil
 }
 
-func CleanMessage(message string) string {
-	url := regexp.MustCompile(`(https?:\/\/[^\s]+)`)
-	emote := regexp.MustCompile(`((:|ː)\w+(:|ː))`)
+func IsRussian(message string) bool {
+	if regexp.MustCompile(`\p{Cyrillic}`).MatchString(message) {
+		return true
+	}
 
-	message = url.ReplaceAllString(message, "")
-	message = emote.ReplaceAllString(message, "")
+	return false
+}
+
+func IsChatRoom(steamid steamid.SteamId) bool {
+	if steamid.ToString() != "0" {
+		return true
+	}
+
+	return false
+}
+
+func CleanMessage(message string) string {
+	message = regexp.MustCompile(`(https?:\/\/[^\s]+)`).ReplaceAllString(message, "")
+	message = regexp.MustCompile(`((:|ː)\w+(:|ː))`).ReplaceAllString(message, "")
+	message = regexp.MustCompile(`[:"']`).ReplaceAllString(message, "")
+
+	// GET OUT OF HERE STALKER
+	message = regexp.MustCompile(`\p{Cyrillic}`).ReplaceAllString(message, "")
+
+	// Repeated whitespace
+	message = regexp.MustCompile(`\s+/`).ReplaceAllString(message, "")
 
 	return strings.TrimSpace(message)
 }
 
-func GenerateReply(message string) string {
+func GenerateReply(client *steam.Client, steamid steamid.SteamId, message string) string {
 	reply := lewdbrain.Reply(message)
+	reply = strings.TrimSpace(reply)
 
-	fullstop := regexp.MustCompile(`\.+$`)
-
-	reply = fullstop.ReplaceAllString(reply, "~")
+	reply = strings.Replace(reply, GetName(client, client.SteamId()), GetName(client, steamid), -1)
+	reply = regexp.MustCompile(`\.+$`).ReplaceAllString(reply, "~")
 
 	lewdbrain.Learn(message)
 
@@ -67,12 +99,25 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 		return
 	}
 
+	if IsRussian(e.Message) && !IsChatRoom(e.ChatRoomId) { // Get out of here stalker
+		client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "Иди нахуй")
+		return
+	}
+
 	message := CleanMessage(e.Message)
-	reply := GenerateReply(message)
+
+	if len(regexp.MustCompile(`[^\p{L} ]`).ReplaceAllString(message, "")) < 3 { // Not enough actual text to bother replying
+		if !IsChatRoom(e.ChatRoomId) {
+			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "Are you retarded?~")
+		}
+		return
+	}
+
+	reply := GenerateReply(client, e.ChatterId, message)
 
 	LogMessage(client, e.ChatterId, message, reply)
 
-	if e.ChatRoomId.ToString() != "0" { // Group chat
+	if IsChatRoom(e.ChatRoomId) { // Group chat
 		client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, reply)
 	} else { // Private message
 		client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, reply)
@@ -214,7 +259,8 @@ func main() {
 
 	lewdbrain = cobebrain
 
-	//learnFileLines("brain.txt")
+	//learnFileLines("./data/brain.txt")
+	//learnFileLines("chatlog.txt")
 
 	file, _ := os.Open("./config.json")
 	decoder := json.NewDecoder(file)
