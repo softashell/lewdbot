@@ -14,6 +14,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"github.com/softashell/lewdbot/settings"
+	"database/sql"
 )
 
 type Configuration struct {
@@ -22,6 +24,7 @@ type Configuration struct {
 }
 
 var configuration Configuration
+var database *sql.DB
 
 var lewdbrain *cobe.Cobe2Brain
 var StrangerList = socialcache.NewFriendsList()
@@ -268,6 +271,9 @@ func main() {
 	if err = decoder.Decode(&configuration); err != nil {
 		log.Fatal(err)
 	}
+
+	database = settings.Load()
+	defer database.Close()
 
 	myLoginInfo := new(steam.LogOnDetails)
 	myLoginInfo.Username = configuration.Username
