@@ -195,7 +195,7 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 
 func LogMessage(client *steam.Client, id steamid.SteamId, chatter steamid.SteamId, message string, reply string) {
 	name := "Nerdgin"
-	if IsChatRoom(id) {
+	if !IsChatRoom(id) {
 		name = GetName(client, id)
 	} else {
 		name = GetName(client, chatter)
