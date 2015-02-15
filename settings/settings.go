@@ -6,15 +6,19 @@ import (
 	"log"
 )
 
-func createGroupEntry(db *sql.DB, id uint64) {
-	db.Exec(`INSERT INTO Groups (id) VALUES (?)`, id)
+type Settings struct {
+	db *sql.DB
+}
+
+func (this Settings) createGroupEntry(id uint64) {
+	this.db.Exec(`INSERT INTO Groups (id) VALUES (?)`, id)
 	// YOLO
 }
 
-func IsGroupBlacklisted(db *sql.DB, id uint64) bool {
+func (this Settings) IsGroupBlacklisted(id uint64) bool {
 	stmt := `SELECT blacklisted FROM Groups WHERE id=?`
 	var fakebool int
-	err := db.QueryRow(stmt, id).Scan(&fakebool)
+	err := this.db.QueryRow(stmt, id).Scan(&fakebool)
 	switch {
 	case err == sql.ErrNoRows:
 		return false
@@ -24,18 +28,18 @@ func IsGroupBlacklisted(db *sql.DB, id uint64) bool {
 	return fakebool == 1
 }
 
-func SetGroupBlacklisted(db *sql.DB, id uint64, value bool) {
-	createGroupEntry(db, id)
+func (this Settings) SetGroupBlacklisted(id uint64, value bool) {
+	this.createGroupEntry(id)
 	stmt := `UPDATE Groups SET blacklisted=? WHERE id=?`
-	if _, err := db.Exec(stmt, value, id); err != nil {
+	if _, err := this.db.Exec(stmt, value, id); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func IsGroupQuiet(db *sql.DB, id uint64) bool {
+func (this Settings) IsGroupQuiet(id uint64) bool {
 	stmt := `SELECT quiet FROM Groups WHERE id=?`
 	var fakebool int
-	err := db.QueryRow(stmt, id).Scan(&fakebool)
+	err := this.db.QueryRow(stmt, id).Scan(&fakebool)
 	switch {
 	case err == sql.ErrNoRows:
 		return false
@@ -45,19 +49,23 @@ func IsGroupQuiet(db *sql.DB, id uint64) bool {
 	return fakebool == 1
 }
 
-func SetGroupQuiet(db *sql.DB, id uint64, value bool) {
-	createGroupEntry(db, id)
+func (this Settings) SetGroupQuiet(id uint64, value bool) {
+	this.createGroupEntry(id)
 	stmt := `UPDATE Groups SET quiet=? WHERE id=?`
-	if _, err := db.Exec(stmt, value, id); err != nil {
+	if _, err := this.db.Exec(stmt, value, id); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func Load() *sql.DB {
+func LoadSettings() Settings {
 	db, err := sql.Open("sqlite3", "data/lewdbot.db")
 	if err != nil {
 		log.Fatalf("Opening settings: %s", err)
 	}
 	migrate(db)
-	return db
+	return Settings{db}
+}
+
+func (this Settings) Close() {
+	this.db.Close()
 }

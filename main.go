@@ -9,13 +9,12 @@ import (
 	"github.com/Philipp15b/go-steam/socialcache"
 	"github.com/Philipp15b/go-steam/steamid"
 	cobe "github.com/pteichman/go.cobe"
+	. "github.com/softashell/lewdbot/settings"
 	"io/ioutil"
 	"log"
 	"os"
 	"regexp"
 	"strings"
-	"github.com/softashell/lewdbot/settings"
-	"database/sql"
 )
 
 type Configuration struct {
@@ -24,7 +23,7 @@ type Configuration struct {
 }
 
 var configuration Configuration
-var database *sql.DB
+var settings Settings
 
 var lewdbrain *cobe.Cobe2Brain
 var StrangerList = socialcache.NewFriendsList()
@@ -272,8 +271,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	database = settings.Load()
-	defer database.Close()
+	settings = LoadSettings()
+	defer settings.Close()
 
 	myLoginInfo := new(steam.LogOnDetails)
 	myLoginInfo.Username = configuration.Username
