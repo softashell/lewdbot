@@ -1,24 +1,31 @@
+// Package settings handles setting up, tearing down, and migrating SQL stuff
+// and in the end gives you a bunch of easy functions to use for looking up and
+// setting settings.
 package settings
 
 import (
 	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3" // sql driver
 	"log"
 )
 
+// Settings is the holder struct for the backend database handler and is also
+// the object you call all your functions from.
 type Settings struct {
 	db *sql.DB
 }
 
-func (this Settings) createGroupEntry(id uint64) {
-	this.db.Exec(`INSERT INTO Groups (id) VALUES (?)`, id)
+func (settings Settings) createGroupEntry(id uint64) {
+	settings.db.Exec(`INSERT INTO Groups (id) VALUES (?)`, id)
 	// YOLO
 }
 
-func (this Settings) IsGroupBlacklisted(id uint64) bool {
+// IsGroupBlacklisted looks up whether the group has been remembered as
+// blacklisted.
+func (settings Settings) IsGroupBlacklisted(id uint64) bool {
 	stmt := `SELECT blacklisted FROM Groups WHERE id=?`
 	var fakebool int
-	err := this.db.QueryRow(stmt, id).Scan(&fakebool)
+	err := settings.db.QueryRow(stmt, id).Scan(&fakebool)
 	switch {
 	case err == sql.ErrNoRows:
 		return false
@@ -28,18 +35,21 @@ func (this Settings) IsGroupBlacklisted(id uint64) bool {
 	return fakebool == 1
 }
 
-func (this Settings) SetGroupBlacklisted(id uint64, value bool) {
-	this.createGroupEntry(id)
+// SetGroupBlacklisted sets whether a group should be considered blacklisted.
+func (settings Settings) SetGroupBlacklisted(id uint64, value bool) {
+	settings.createGroupEntry(id)
 	stmt := `UPDATE Groups SET blacklisted=? WHERE id=?`
-	if _, err := this.db.Exec(stmt, value, id); err != nil {
+	if _, err := settings.db.Exec(stmt, value, id); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func (this Settings) IsGroupQuiet(id uint64) bool {
+// IsGroupQuiet looks up whether the group has been remembered as should be
+// treated quietly.
+func (settings Settings) IsGroupQuiet(id uint64) bool {
 	stmt := `SELECT quiet FROM Groups WHERE id=?`
 	var fakebool int
-	err := this.db.QueryRow(stmt, id).Scan(&fakebool)
+	err := settings.db.QueryRow(stmt, id).Scan(&fakebool)
 	switch {
 	case err == sql.ErrNoRows:
 		return false
@@ -49,14 +59,17 @@ func (this Settings) IsGroupQuiet(id uint64) bool {
 	return fakebool == 1
 }
 
-func (this Settings) SetGroupQuiet(id uint64, value bool) {
-	this.createGroupEntry(id)
+// SetGroupQuiet sets whether a group should be treated quietly.
+func (settings Settings) SetGroupQuiet(id uint64, value bool) {
+	settings.createGroupEntry(id)
 	stmt := `UPDATE Groups SET quiet=? WHERE id=?`
-	if _, err := this.db.Exec(stmt, value, id); err != nil {
+	if _, err := settings.db.Exec(stmt, value, id); err != nil {
 		log.Fatal(err)
 	}
 }
 
+// LoadSettings should be called before anything else, and will give you the
+// object you look up all your settings from.
 func LoadSettings() Settings {
 	db, err := sql.Open("sqlite3", "data/lewdbot.db")
 	if err != nil {
@@ -66,6 +79,7 @@ func LoadSettings() Settings {
 	return Settings{db}
 }
 
-func (this Settings) Close() {
-	this.db.Close()
+// Close tears down the database. Don't forget this!
+func (settings Settings) Close() {
+	settings.db.Close()
 }
