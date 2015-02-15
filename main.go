@@ -92,7 +92,8 @@ func GenerateReply(client *steam.Client, steamid steamid.SteamId, message string
 	reply = strings.TrimSpace(reply)
 
 	reply = strings.Replace(reply, "lewdbot", GetName(client, steamid), -1)
-	reply = regex.TrailingPunctuation.ReplaceAllString(reply, "~")
+	reply = regex.TrailingPunctuation.ReplaceAllString(reply, "")
+	reply = fmt.Sprintf("%s~", reply)
 
 	// TODO: Stop the cancer
 	lewdbrain.Learn(message)
