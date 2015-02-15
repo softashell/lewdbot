@@ -2,20 +2,16 @@ package commands
 
 import (
 	"fmt"
-	"github.com/Philipp15b/go-steam"
 	"github.com/Philipp15b/go-steam/steamid"
 	"github.com/softashell/lewdbot/regex"
 	. "github.com/softashell/lewdbot/settings"
-	"log"
 	"strings"
 )
 
-func Handle(client *steam.Client, master steamid.SteamId, message string, settings Settings) (bool, string) {
+func Handle(message string, settings Settings) (bool, string) {
 	if !strings.HasPrefix(message, "!") {
 		return false, ""
 	}
-
-	log.Printf("Obeying master %s %s", master, message)
 
 	command := regex.CommandName.FindStringSubmatch(message)[1]
 

@@ -114,7 +114,7 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 	}
 
 	if IsMaster(e.ChatterId) {
-		if master, reply := commands.Handle(client, e.ChatterId, e.Message, settings); master == true {
+		if master, reply := commands.Handle(e.Message, settings); master == true {
 			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, reply)
 			return
 		}
