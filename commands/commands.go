@@ -36,6 +36,10 @@ func blacklistRemove(settings Settings, arg1 string) string {
 	return fmt.Sprintf("removed %s from group blacklist", arg1)
 }
 
+// Handle takes the full command message and the settings struct and executes
+// the command specified in the message. It returns a bool saying whether the
+// regular response should be inhibited, and a message lewdbot should reply to
+// the admin with.
 func Handle(message string, settings Settings) (bool, string) {
 	if !strings.HasPrefix(message, "!") {
 		return false, ""
