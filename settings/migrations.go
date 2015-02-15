@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-var totalMigrations = 1
+var totalMigrations = 2
 
 func migrate(db *sql.DB) {
 	rows, err := db.Query("SELECT * FROM Migrations")
@@ -31,29 +31,59 @@ func migrate(db *sql.DB) {
 		migrate1(db)
 		latestMigration = 1
 	}
-}
-
-func migrateAll(db *sql.DB) {
-	stmt := `CREATE TABLE Migrations (
-             id INT PRIMARY KEY NOT NULL
-           );`
-	log.Print(stmt)
-	if _, err := db.Exec(stmt); err != nil {
-		log.Fatalf("Failed to create Migrations table! %s", err)
+	if latestMigration == 1 {
+		migrate2(db)
+		latestMigration = 2
 	}
-	migrate1(db)
 }
 
-func migrate1(db *sql.DB) {
-	log.Print("Migration #1")
-	stmt := `CREATE TABLE Groups (
-             id VARCHAR(17) PRIMARY KEY NOT NULL,
-             blacklisted INT DEFAULT 0,
-             quiet INT DEFAULT 0
-           );`
+func execAndPrint(db *sql.DB, stmt string) {
 	log.Print(stmt)
 	if _, err := db.Exec(stmt); err != nil {
 		log.Fatalf("Failed! %s", err)
 	}
+}
+
+func migrateAll(db *sql.DB) {
+	execAndPrint(db, `CREATE TABLE Migrations (
+                      id INT PRIMARY KEY NOT NULL
+                    );`)
+	migrate1(db)
+	migrate2(db)
+}
+
+func migrate1(db *sql.DB) {
+	log.Print("Migration #1")
+
+	execAndPrint(db, `CREATE TABLE Groups (
+                      id VARCHAR(17) PRIMARY KEY NOT NULL,
+                      blacklisted INT DEFAULT 0,
+                      quiet INT DEFAULT 0
+                    );`)
+
 	db.Exec(`INSERT INTO migrations VALUES (1)`)
+}
+
+func migrate2(db *sql.DB) {
+	log.Print("Migration #2")
+
+	db.Exec(`BEGIN TRANSACTION`)
+	execAndPrint(db, `ALTER TABLE Groups RENAME TO Groups_tmp`)
+	execAndPrint(db, `CREATE TABLE Groups (
+                      id VARCHAR(19) PRIMARY KEY NOT NULL,
+                      blacklisted INT DEFAULT 0,
+                      quiet INT DEFAULT 0
+                    );`)
+	execAndPrint(db, `INSERT INTO Groups (id, blacklisted, quiet)
+                    SELECT id, blacklisted, quiet
+                    FROM Groups_tmp`)
+	execAndPrint(db, `DROP TABLE Groups_tmp`)
+	db.Exec(`COMMIT`)
+
+	execAndPrint(db, `CREATE TABLE Users (
+                      id VARCHAR(19),
+                      admin INT DEFAULT 0
+                    );`)
+
+	db.Exec(`INSERT INTO migrations VALUES (2)`)
 }

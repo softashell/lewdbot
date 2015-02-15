@@ -21,6 +21,10 @@ func (settings Settings) createGroupEntry(id steamid.SteamId) {
 	// YOLO
 }
 
+func (settings Settings) createUserEntry(id steamid.SteamId) {
+	settings.db.Exec(`INSERT INTO Users (id) VALUES (?)`, id)
+}
+
 // IsGroupBlacklisted looks up whether the group has been remembered as
 // blacklisted.
 func (settings Settings) IsGroupBlacklisted(id steamid.SteamId) bool {
@@ -92,6 +96,55 @@ func (settings Settings) SetGroupQuiet(id steamid.SteamId, value bool) {
 	if _, err := settings.db.Exec(stmt, value, id); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// IsUserAdmin looks up whether a user has been remembered as an admin.
+func (settings Settings) IsUserAdmin(id steamid.SteamId) bool {
+	stmt := `SELECT admin FROM Users WHERE id=?`
+	var fakebool int
+	err := settings.db.QueryRow(stmt, id).Scan(&fakebool)
+	switch {
+	case err == sql.ErrNoRows:
+		return false
+	case err != nil:
+		log.Fatal(err)
+	}
+	return fakebool == 1
+}
+
+// SetUserAdmin sets whether a user should be considered an admin.
+func (settings Settings) SetUserAdmin(id steamid.SteamId, value bool) {
+	settings.createUserEntry(id)
+	stmt := `UPDATE Users SET admin=? WHERE id=?`
+	if _, err := settings.db.Exec(stmt, value, id); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// ListUserAdmin lists all users that are considered admins.
+func (settings Settings) ListUserAdmin() []steamid.SteamId {
+	stmt := `SELECT id FROM Users WHERE admin=1`
+	rows, err := settings.db.Query(stmt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var users []steamid.SteamId
+	for rows.Next() {
+		var id string
+		err = rows.Scan(&id)
+		if err != nil {
+			log.Fatal(err)
+		}
+		sid, err := steamid.NewId(id)
+		if err != nil {
+			log.Fatal(err)
+		}
+		groups = append(groups, sid)
+	}
+	if err = rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return users
 }
 
 // LoadSettings should be called before anything else, and will give you the
