@@ -8,41 +8,41 @@ import (
 	"strings"
 )
 
-func adminAdd(settings Settings, arg1 string) string {
+func adminAdd(settings Settings, arg1 string) []string {
 	if _, err := steamid.NewId(arg1); err != nil {
-		return "invalid steam id"
+		return []string{"invalid steam id"}
 	}
 
-	return fmt.Sprintf("added %s to admin list (but not really, that's not implemented)", arg1)
+	return []string{fmt.Sprintf("added %s to admin list (but not really, that's not implemented)", arg1)}
 }
 
-func blacklistAdd(settings Settings, arg1 string) string {
+func blacklistAdd(settings Settings, arg1 string) []string {
 	id, err := steamid.NewId(arg1)
 	if err != nil {
-		return "invalid group id"
+		return []string{"invalid group id"}
 	}
 
 	settings.SetGroupBlacklisted(id, true)
-	return fmt.Sprintf("added %s to group blacklist", arg1)
+	return []string{fmt.Sprintf("added %s to group blacklist", arg1)}
 }
 
-func blacklistRemove(settings Settings, arg1 string) string {
+func blacklistRemove(settings Settings, arg1 string) []string {
 	id, err := steamid.NewId(arg1)
 	if err != nil {
-		return "invalid group id"
+		return []string{"invalid group id"}
 	}
 
 	settings.SetGroupBlacklisted(id, false)
-	return fmt.Sprintf("removed %s from group blacklist", arg1)
+	return []string{fmt.Sprintf("removed %s from group blacklist", arg1)}
 }
 
 // Handle takes the full command message and the settings struct and executes
 // the command specified in the message. It returns a bool saying whether the
-// regular response should be inhibited, and a message lewdbot should reply to
+// regular response should be inhibited, and message(s) lewdbot should reply to
 // the admin with.
-func Handle(message string, settings Settings) (bool, string) {
+func Handle(message string, settings Settings) (bool, []string) {
 	if !strings.HasPrefix(message, "!") {
-		return false, ""
+		return false, []string{}
 	}
 
 	command := regex.CommandName.FindStringSubmatch(message)[1]
@@ -52,7 +52,7 @@ func Handle(message string, settings Settings) (bool, string) {
 		arg := regex.AdminAddArguments.FindStringSubmatch(message)
 
 		if len(arg) < 1 {
-			return true, "not enough arguments"
+			return true, []string{"not enough arguments"}
 		}
 
 		return true, adminAdd(settings, arg[1])
@@ -61,7 +61,7 @@ func Handle(message string, settings Settings) (bool, string) {
 		arg := regex.BlacklistAddArguments.FindStringSubmatch(message)
 
 		if len(arg) < 1 {
-			return true, "not enough arguments"
+			return true, []string{"not enough arguments"}
 		}
 
 		return true, blacklistAdd(settings, arg[1])
@@ -70,12 +70,12 @@ func Handle(message string, settings Settings) (bool, string) {
 		arg := regex.BlacklistRemoveArguments.FindStringSubmatch(message)
 
 		if len(arg) < 1 {
-			return true, "not enough arguments"
+			return true, []string{"not enough arguments"}
 		}
 
 		return true, blacklistRemove(settings, arg[1])
 
 	default:
-		return true, fmt.Sprintf("unknown command: %s", command)
+		return true, []string{fmt.Sprintf("unknown command: %s", command)}
 	}
 }

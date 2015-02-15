@@ -114,8 +114,10 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 	}
 
 	if IsMaster(e.ChatterId) {
-		if master, reply := commands.Handle(e.Message, settings); master == true {
-			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, reply)
+		if master, replies := commands.Handle(e.Message, settings); master == true {
+			for _, reply := range replies {
+				client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, reply)
+			}
 			return
 		}
 	} else if IsRussian(e.Message) {
