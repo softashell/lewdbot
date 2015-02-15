@@ -38,8 +38,10 @@ func learnFileLines(path string) error {
 	s := bufio.NewScanner(bufio.NewReader(f))
 	for s.Scan() {
 		text := CleanMessage(s.Text())
-		log.Print(text)
-		//lewdbrain.Learn(text)
+		if len(text) < 5 {
+			continue
+		}
+		lewdbrain.Learn(text)
 		/*
 			sentences := regexp.MustCompile(`(\.+?[\n\.!?]+)`).Split(text, -1)
 			for index, sentence := range sentences {
@@ -78,6 +80,9 @@ func CleanMessage(message string) string {
 
 	// GET OUT OF HERE STALKER
 	message = regexp.MustCompile(`\p{Cyrillic}`).ReplaceAllString(message, "")
+
+	// Wikipedia citations
+	message = regexp.MustCompile(`(\[\d+\])`).ReplaceAllString(message, "")
 
 	// Repeated whitespace
 	message = regexp.MustCompile(`\s{2,}/`).ReplaceAllString(message, " ")
@@ -152,9 +157,7 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 			// Command executed, no need to reply
 			return
 		}
-	}
-
-	if IsRussian(e.Message) {
+	} else if IsRussian(e.Message) {
 		if !IsChatRoom(e.ChatRoomId) { // Get out of here stalker
 			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "Иди нахуй")
 		}
@@ -167,6 +170,14 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 		if !IsChatRoom(e.ChatRoomId) {
 			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "Are you retarded?~")
 		}
+		return
+	} else if regexp.MustCompile(`^[>]`).MatchString(message) {
+		if !IsChatRoom(e.ChatRoomId) {
+			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "Who are you quoting?~")
+		}
+
+		return
+	} else if regexp.MustCompile(`^[\.\\/!?:]`).MatchString(message) {
 		return
 	}
 
@@ -322,7 +333,6 @@ func main() {
 	lewdbrain = cobebrain
 
 	//learnFileLines("./data/brain.txt")
-	//learnFileLines("chatlog.txt")
 
 	file, _ := os.Open("./config.json")
 	decoder := json.NewDecoder(file)
