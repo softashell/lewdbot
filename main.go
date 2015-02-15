@@ -328,7 +328,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	settings = LoadSettings()
+	settings = LoadSettings("data/lewdbot.db")
 	defer settings.Close()
 
 	settings.SetGroupBlacklisted(103582791432902485, true)
