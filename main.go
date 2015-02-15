@@ -161,7 +161,7 @@ func ObeyMaster(client *steam.Client, master steamid.SteamId, message string) (b
 		return true, fmt.Sprintf("removing %s from group blacklist", arg[1])
 
 	default:
-		log.Printf("unknown command: %s", command)
+		return true, fmt.Sprintf("unknown command: %s", command)
 	}
 
 	return true, ""
