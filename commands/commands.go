@@ -40,7 +40,7 @@ func blacklistList(settings Settings) []string {
 	groups := settings.ListGroupBlacklisted()
 	var list []string
 	for _, group := range groups {
-		list = append(list, group.String())
+		list = append(list, fmt.Sprintf("http://steamcommunity.com/gid/%s", group.String()))
 	}
 	return list
 }
