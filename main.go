@@ -319,6 +319,13 @@ func PersonaStateEvent(client *steam.Client, e *steam.PersonaStateEvent) {
 
 }
 
+func AutojoinGroups(client *steam.Client) {
+	autojoin := settings.ListGroupAutojoin()
+	for _, group := range autojoin {
+		client.Social.JoinChat(group)
+	}
+}
+
 func main() {
 
 	os.Mkdir("./data", 0777)
@@ -361,6 +368,7 @@ func main() {
 		case *steam.LoggedOnEvent:
 			log.Print("Logged on")
 			client.Social.SetPersonaState(steamlang.EPersonaState_Online)
+			go AutojoinGroups(client)
 		case steam.FatalErrorEvent:
 			log.Print(e)
 		case *steam.ChatMsgEvent:
