@@ -331,10 +331,6 @@ func main() {
 	settings = LoadSettings("data/lewdbot.db")
 	defer settings.Close()
 
-	settings.SetGroupBlacklisted(103582791432902485, true)
-	settings.SetGroupBlacklisted(103582791433224455, true)
-	settings.SetGroupBlacklisted(110338190878437182, false)
-
 	myLoginInfo := new(steam.LogOnDetails)
 	myLoginInfo.Username = configuration.Username
 	myLoginInfo.Password = configuration.Password
