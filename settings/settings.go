@@ -5,6 +5,7 @@ package settings
 
 import (
 	"database/sql"
+	"github.com/Philipp15b/go-steam/steamid"
 	_ "github.com/mattn/go-sqlite3" // sql driver
 	"log"
 )
@@ -15,14 +16,14 @@ type Settings struct {
 	db *sql.DB
 }
 
-func (settings Settings) createGroupEntry(id uint64) {
+func (settings Settings) createGroupEntry(id steamid.SteamId) {
 	settings.db.Exec(`INSERT INTO Groups (id) VALUES (?)`, id)
 	// YOLO
 }
 
 // IsGroupBlacklisted looks up whether the group has been remembered as
 // blacklisted.
-func (settings Settings) IsGroupBlacklisted(id uint64) bool {
+func (settings Settings) IsGroupBlacklisted(id steamid.SteamId) bool {
 	stmt := `SELECT blacklisted FROM Groups WHERE id=?`
 	var fakebool int
 	err := settings.db.QueryRow(stmt, id).Scan(&fakebool)
@@ -36,7 +37,7 @@ func (settings Settings) IsGroupBlacklisted(id uint64) bool {
 }
 
 // SetGroupBlacklisted sets whether a group should be considered blacklisted.
-func (settings Settings) SetGroupBlacklisted(id uint64, value bool) {
+func (settings Settings) SetGroupBlacklisted(id steamid.SteamId, value bool) {
 	settings.createGroupEntry(id)
 	stmt := `UPDATE Groups SET blacklisted=? WHERE id=?`
 	if _, err := settings.db.Exec(stmt, value, id); err != nil {
@@ -46,7 +47,7 @@ func (settings Settings) SetGroupBlacklisted(id uint64, value bool) {
 
 // IsGroupQuiet looks up whether the group has been remembered as should be
 // treated quietly.
-func (settings Settings) IsGroupQuiet(id uint64) bool {
+func (settings Settings) IsGroupQuiet(id steamid.SteamId) bool {
 	stmt := `SELECT quiet FROM Groups WHERE id=?`
 	var fakebool int
 	err := settings.db.QueryRow(stmt, id).Scan(&fakebool)
@@ -60,7 +61,7 @@ func (settings Settings) IsGroupQuiet(id uint64) bool {
 }
 
 // SetGroupQuiet sets whether a group should be treated quietly.
-func (settings Settings) SetGroupQuiet(id uint64, value bool) {
+func (settings Settings) SetGroupQuiet(id steamid.SteamId, value bool) {
 	settings.createGroupEntry(id)
 	stmt := `UPDATE Groups SET quiet=? WHERE id=?`
 	if _, err := settings.db.Exec(stmt, value, id); err != nil {

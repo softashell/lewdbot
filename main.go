@@ -244,7 +244,8 @@ func AddFriends(client *steam.Client, e *steam.FriendsListEvent) {
 func ChatInviteEvent(client *steam.Client, e *steam.ChatInviteEvent) {
 	if e.ChatRoomType != steamlang.EChatRoomType_Lobby {
 		log.Printf("Invited to %s (%s) by %s %s", e.ChatRoomName, e.ChatRoomId, GetName(client, e.PatronId), e.PatronId)
-		if !settings.IsGroupBlacklisted(e.ChatRoomId.ToUint64()) {
+
+		if !settings.IsGroupBlacklisted(e.ChatRoomId) {
 			client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "On my way~ I hope you will not keep me in your basement forever~")
 			client.Social.JoinChat(e.ChatRoomId)
 		} else {
