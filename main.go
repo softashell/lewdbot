@@ -131,7 +131,39 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 		return
 	}
 
-	message := CleanMessage(e.Message)
+	message := e.Message
+
+	if IsChatRoom(e.ChatRoomId) {
+		if strings.HasPrefix(e.Message, "lewdbot, ") {
+			switch {
+			case strings.HasSuffix(e.Message, "don't speak unless spoken to."):
+				settings.SetGroupQuiet(e.ChatRoomId, true)
+				client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, "Got it!")
+				return
+			case strings.HasSuffix(e.Message, "you may speak freely."):
+				settings.SetGroupQuiet(e.ChatRoomId, false)
+				client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, "Got it!")
+				return
+			case strings.HasSuffix(e.Message, "you can come here any time you'd like."):
+				settings.SetGroupAutojoin(e.ChatRoomId, true)
+				client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, "Got it!")
+				return
+			case strings.HasSuffix(e.Message, "stop coming here."):
+				settings.SetGroupAutojoin(e.ChatRoomId, false)
+				client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, "Got it!")
+				return
+			default:
+				message = strings.TrimPrefix(message, "lewdbot, ")
+			}
+		} else {
+			if settings.IsGroupQuiet(e.ChatRoomId) {
+				// todo: logmessage here, without a reply
+				return
+			}
+		}
+	}
+
+	message = CleanMessage(message)
 
 	if len(regex.NotActualText.ReplaceAllString(message, "")) < 3 { // Not enough actual text to bother replying
 		if !IsChatRoom(e.ChatRoomId) {
@@ -287,6 +319,13 @@ func PersonaStateEvent(client *steam.Client, e *steam.PersonaStateEvent) {
 
 }
 
+func AutojoinGroups(client *steam.Client) {
+	autojoin := settings.ListGroupAutojoin()
+	for _, group := range autojoin {
+		client.Social.JoinChat(group)
+	}
+}
+
 func main() {
 
 	os.Mkdir("./data", 0777)
@@ -329,6 +368,7 @@ func main() {
 		case *steam.LoggedOnEvent:
 			log.Print("Logged on")
 			client.Social.SetPersonaState(steamlang.EPersonaState_Online)
+			go AutojoinGroups(client)
 		case steam.FatalErrorEvent:
 			log.Print(e)
 		case *steam.ChatMsgEvent:

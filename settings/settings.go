@@ -74,6 +74,57 @@ func (settings Settings) ListGroupBlacklisted() []steamid.SteamId {
 	return groups
 }
 
+// IsGroupAutojoin looks up whether the group has been remembered as should be
+// autojoined.
+func (settings Settings) IsGroupAutojoin(id steamid.SteamId) bool {
+	stmt := `SELECT autojoin FROM Groups WHERE id=?`
+	var fakebool int
+	err := settings.db.QueryRow(stmt, id).Scan(&fakebool)
+	switch {
+	case err == sql.ErrNoRows:
+		return false
+	case err != nil:
+		log.Fatal(err)
+	}
+	return fakebool == 1
+}
+
+// SetGroupAutojoin sets whether a group should be autojoined.
+func (settings Settings) SetGroupAutojoin(id steamid.SteamId, value bool) {
+	settings.createGroupEntry(id)
+	stmt := `UPDATE Groups SET autojoin=? WHERE id=?`
+	if _, err := settings.db.Exec(stmt, value, id); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// ListGroupAutojoin looks up all groups that are remembered as should be
+// autojoined
+func (settings Settings) ListGroupAutojoin() []steamid.SteamId {
+	stmt := `SELECT id FROM Groups WHERE autojoin=1`
+	rows, err := settings.db.Query(stmt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var groups []steamid.SteamId
+	for rows.Next() {
+		var id string
+		err = rows.Scan(&id)
+		if err != nil {
+			log.Fatal(err)
+		}
+		sid, err := steamid.NewId(id)
+		if err != nil {
+			log.Fatal(err)
+		}
+		groups = append(groups, sid)
+	}
+	if err = rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return groups
+}
+
 // IsGroupQuiet looks up whether the group has been remembered as should be
 // treated quietly.
 func (settings Settings) IsGroupQuiet(id steamid.SteamId) bool {

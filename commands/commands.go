@@ -9,6 +9,15 @@ import (
 	"strings"
 )
 
+func autojoinList(settings Settings) []string {
+	groups := settings.ListGroupAutojoin()
+	var list []string
+	for _, group := range groups {
+		list = append(list, fmt.Sprintf("http://steamcommunity.com/gid/%s", group.String()))
+	}
+	return list
+}
+
 func blacklistAdd(settings Settings, arg1 string) []string {
 	id, err := steamid.NewId(arg1)
 	if err != nil {
@@ -68,10 +77,10 @@ func masterRemove(settings Settings, arg1 string) []string {
 }
 
 func masterList(settings Settings) []string {
-	groups := settings.ListUserMaster()
+	users := settings.ListUserMaster()
 	var list []string
-	for _, group := range groups {
-		list = append(list, fmt.Sprintf("http://steamcommunity.com/profiles/%d", group.ToUint64()))
+	for _, user := range users {
+		list = append(list, fmt.Sprintf("http://steamcommunity.com/profiles/%d", user.ToUint64()))
 	}
 	return list
 }
@@ -88,9 +97,8 @@ func Handle(client *steam.Client, message string, settings Settings) (bool, []st
 	command := regex.CommandName.FindStringSubmatch(message)[1]
 
 	switch command {
-
-	case "chat.list":
-		return true, chatList(client)
+	case "autojoin.list":
+		return true, autojoinList(settings)
 
 	case "blacklist.add":
 		arg := regex.BlacklistAddArguments.FindStringSubmatch(message)
@@ -112,6 +120,9 @@ func Handle(client *steam.Client, message string, settings Settings) (bool, []st
 
 	case "blacklist.list":
 		return true, blacklistList(settings)
+
+	case "chat.list":
+		return true, chatList(client)
 
 	case "master.add":
 		arg := regex.MasterAddArguments.FindStringSubmatch(message)
