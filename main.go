@@ -191,18 +191,18 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 
 	reply := GenerateReply(client, e.ChatterId, message)
 
-	LogMessage(client, e.ChatterId, message, reply)
-
 	if IsChatRoom(e.ChatRoomId) { // Group chat
+		LogMessage(client, e.ChatRoomId, message, reply)
 		client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, reply)
 	} else { // Private message
+		LogMessage(client, e.ChatterId, message, reply)
 		client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, reply)
 	}
 }
 
-func LogMessage(client *steam.Client, chatterid steamid.SteamId, message string, reply string) {
-	name := GetName(client, chatterid)
-	filename := fmt.Sprintf("%d", chatterid.ToUint64())
+func LogMessage(client *steam.Client, id steamid.SteamId, message string, reply string) {
+	name := GetName(client, id)
+	filename := fmt.Sprintf("%d", id.ToUint64())
 	text := fmt.Sprintf("%s: %s\nlewdbot: %s\n", name, message, reply)
 
 	log.Print(text)
