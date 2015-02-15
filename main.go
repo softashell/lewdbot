@@ -171,7 +171,9 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 		}
 		return
 	} else if regex.Greentext.MatchString(message) {
-		if !IsChatRoom(e.ChatRoomId) {
+		if IsChatRoom(e.ChatRoomId) {
+			client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, "Who are you quoting?~")
+		} else {
 			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "Who are you quoting?~")
 		}
 
