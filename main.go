@@ -134,7 +134,7 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 	message := e.Message
 
 	if IsChatRoom(e.ChatRoomId) {
-		if strings.HasPrefix(e.Message, "lewdbot, ") {
+		if strings.HasPrefix(strings.ToLower(e.Message), "lewdbot, ") {
 			switch {
 			case strings.HasSuffix(e.Message, "don't speak unless spoken to."):
 				settings.SetGroupQuiet(e.ChatRoomId, true)
