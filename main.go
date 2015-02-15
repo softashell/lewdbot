@@ -153,7 +153,7 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 				client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, "Got it!")
 				return
 			default:
-				message = strings.TrimPrefix(message, "lewdbot, ")
+				message = message[9:]
 			}
 		} else {
 			if settings.IsGroupQuiet(e.ChatRoomId) {
