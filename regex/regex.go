@@ -32,11 +32,13 @@ var (
 var (
 	// CommandName matches !<this> part of a command call.
 	CommandName = regexp.MustCompile(`^!(\S+)`)
-	// AdminAddArguments matches the arguments to the !admin.add command.
-	AdminAddArguments = regexp.MustCompile(`^!\S+ (\S+)`)
 	// BlacklistAddArguments matches the arguments to the !blacklist.add command.
 	BlacklistAddArguments = regexp.MustCompile(`^!\S+ (\S+)`)
 	// BlacklistRemoveArguments matches the argumens to the !blacklist.remove
 	// command.
 	BlacklistRemoveArguments = regexp.MustCompile(`^!\S+ (\S+)`)
+	// MasterAddArguments matches the arguments to the !master.add command.
+	MasterAddArguments = regexp.MustCompile(`^!\S+ (\S+)`)
+	// MasterRemoveArguments matches the argumens to the !master.remove command.
+	MasterRemoveArguments = regexp.MustCompile(`^!\S+ (\S+)`)
 )
