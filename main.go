@@ -131,7 +131,20 @@ func ObeyMaster(client *steam.Client, master steamid.SteamId, message string) (b
 		return true, fmt.Sprintf("added %s to admin list (but not really, that's not implemented)", arg[1])
 
 	case "blacklist.add":
-		log.Printf("blacklist.add: %s", command)
+		arg := regex.BlacklistAddArguments.FindStringSubmatch(message)
+
+		if len(arg) < 1 {
+			return true, "not enough arguments"
+		}
+
+		id, err := steamid.NewId(arg[1])
+		if err != nil {
+			return true, "ERROR: invalid group id"
+		}
+
+		settings.SetGroupBlacklisted(id, true)
+		return true, fmt.Sprintf("adding %s to group blacklist", arg[1])
+
 	case "blacklist.remove":
 		log.Printf("blacklist.remove: %s", command)
 	default:

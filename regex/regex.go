@@ -34,4 +34,6 @@ var (
 	CommandName = regexp.MustCompile(`^!(\S+)`)
 	// AdminAddArguments matches the arguments to the !admin.add command.
 	AdminAddArguments = regexp.MustCompile(`^!\S+ (\S+)`)
+	// BlacklistAddArguments matches the arguments to the !blacklist.add command.
+	BlacklistAddArguments = regexp.MustCompile(`^!\S+ (\S+)`)
 )
