@@ -76,7 +76,7 @@ func IsChatRoom(steamid steamid.SteamId) bool {
 func CleanMessage(message string) string {
 	message = regexp.MustCompile(`(https?:\/\/[^\s]+)`).ReplaceAllString(message, "")
 	message = regexp.MustCompile(`((:|ː)\w+(:|ː))`).ReplaceAllString(message, "")
-	message = regexp.MustCompile(`[:"']`).ReplaceAllString(message, "")
+	message = regexp.MustCompile(`[:"]`).ReplaceAllString(message, "")
 
 	// GET OUT OF HERE STALKER
 	message = regexp.MustCompile(`\p{Cyrillic}`).ReplaceAllString(message, "")
@@ -112,11 +112,11 @@ func IsMaster(master steamid.SteamId) bool {
 }
 
 func ObeyMaster(client *steam.Client, master steamid.SteamId, message string) bool {
-	log.Printf("Obeying master %s %s", master, message)
-
 	if !strings.HasPrefix(message, "!") {
 		return false
 	}
+
+	log.Printf("Obeying master %s %s", master, message)
 
 	re := regexp.MustCompile(`^!(\S+)`)
 	argre := regexp.MustCompile(`^!\S+ (\S+)`)
