@@ -134,6 +134,16 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 
 	message := e.Message
 
+	if strings.ToLower(e.Message) == "lewdbot, who is your master?" {
+		reply := fmt.Sprintf("That would be https://steamcommunity.com/profiles/%d ~", configuration.Master)
+		if IsChatRoom(e.ChatRoomId) {
+			client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, reply)
+		} else {
+			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, reply)
+		}
+		return
+	}
+
 	if IsChatRoom(e.ChatRoomId) {
 		if strings.HasPrefix(strings.ToLower(e.Message), "lewdbot, ") {
 			switch {
