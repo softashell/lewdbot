@@ -9,11 +9,11 @@ import (
 	"github.com/Philipp15b/go-steam/socialcache"
 	"github.com/Philipp15b/go-steam/steamid"
 	cobe "github.com/pteichman/go.cobe"
+	"github.com/softashell/lewdbot/regex"
 	. "github.com/softashell/lewdbot/settings"
 	"io/ioutil"
 	"log"
 	"os"
-	"regexp"
 	"strings"
 )
 
@@ -58,7 +58,7 @@ func learnFileLines(path string) error {
 }
 
 func IsRussian(message string) bool {
-	if regexp.MustCompile(`\p{Cyrillic}`).MatchString(message) {
+	if regex.Russian.MatchString(message) {
 		return true
 	}
 
@@ -74,18 +74,14 @@ func IsChatRoom(steamid steamid.SteamId) bool {
 }
 
 func CleanMessage(message string) string {
-	message = regexp.MustCompile(`(https?:\/\/[^\s]+)`).ReplaceAllString(message, "")
-	message = regexp.MustCompile(`((:|ː)\w+(:|ː))`).ReplaceAllString(message, "")
-	message = regexp.MustCompile(`[:"]`).ReplaceAllString(message, "")
+	message = regex.Link.ReplaceAllString(message, "")
+	message = regex.Emoticon.ReplaceAllString(message, "")
+	message = regex.Junk.ReplaceAllString(message, "")
+	message = regex.WikipediaCitations.ReplaceAllString(message, "")
+	message = regex.RepeatedWhitespace.ReplaceAllString(message, " ")
 
 	// GET OUT OF HERE STALKER
-	message = regexp.MustCompile(`\p{Cyrillic}`).ReplaceAllString(message, "")
-
-	// Wikipedia citations
-	message = regexp.MustCompile(`(\[\d+\])`).ReplaceAllString(message, "")
-
-	// Repeated whitespace
-	message = regexp.MustCompile(`\s{2,}/`).ReplaceAllString(message, " ")
+	message = regex.Russian.ReplaceAllString(message, "")
 
 	return strings.TrimSpace(message)
 }
@@ -95,7 +91,7 @@ func GenerateReply(client *steam.Client, steamid steamid.SteamId, message string
 	reply = strings.TrimSpace(reply)
 
 	reply = strings.Replace(reply, "lewdbot", GetName(client, steamid), -1)
-	reply = regexp.MustCompile(`[\.,—-]+$`).ReplaceAllString(reply, "~")
+	reply = regex.TrailingPunctuation.ReplaceAllString(reply, "~")
 
 	// TODO: Stop the cancer
 	lewdbrain.Learn(message)
@@ -118,14 +114,11 @@ func ObeyMaster(client *steam.Client, master steamid.SteamId, message string) bo
 
 	log.Printf("Obeying master %s %s", master, message)
 
-	re := regexp.MustCompile(`^!(\S+)`)
-	argre := regexp.MustCompile(`^!\S+ (\S+)`)
-
-	command := re.FindStringSubmatch(message)[1]
+	command := regex.CommandName.FindStringSubmatch(message)[1]
 
 	switch command {
 	case "addadmin":
-		arg := argre.FindStringSubmatch(message)
+		arg := regex.AddAdminArguments.FindStringSubmatch(message)
 
 		if len(arg) < 1 {
 			log.Print("not enough arguments")
@@ -166,18 +159,18 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 
 	message := CleanMessage(e.Message)
 
-	if len(regexp.MustCompile(`[^\p{L} ]`).ReplaceAllString(message, "")) < 3 { // Not enough actual text to bother replying
+	if len(regex.NotActualText.ReplaceAllString(message, "")) < 3 { // Not enough actual text to bother replying
 		if !IsChatRoom(e.ChatRoomId) {
 			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "Are you retarded?~")
 		}
 		return
-	} else if regexp.MustCompile(`^[>]`).MatchString(message) {
+	} else if regex.Greentext.MatchString(message) {
 		if !IsChatRoom(e.ChatRoomId) {
 			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "Who are you quoting?~")
 		}
 
 		return
-	} else if regexp.MustCompile(`^[\.\\/!?:]`).MatchString(message) {
+	} else if regex.JustPunctuation.MatchString(message) {
 		return
 	}
 
