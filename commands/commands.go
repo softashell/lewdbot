@@ -8,6 +8,15 @@ import (
 	"strings"
 )
 
+func autojoinList(settings Settings) []string {
+	groups := settings.ListGroupAutojoin()
+	var list []string
+	for _, group := range groups {
+		list = append(list, fmt.Sprintf("http://steamcommunity.com/gid/%s", group.String()))
+	}
+	return list
+}
+
 func blacklistAdd(settings Settings, arg1 string) []string {
 	id, err := steamid.NewId(arg1)
 	if err != nil {
@@ -78,6 +87,9 @@ func Handle(message string, settings Settings) (bool, []string) {
 	command := regex.CommandName.FindStringSubmatch(message)[1]
 
 	switch command {
+	case "autojoin.list":
+		return true, autojoinList(settings)
+
 	case "blacklist.add":
 		arg := regex.BlacklistAddArguments.FindStringSubmatch(message)
 
