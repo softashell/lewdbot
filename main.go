@@ -131,7 +131,7 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 		return
 	}
 
-	var message string
+	message := e.Message
 
 	if IsChatRoom(e.ChatRoomId) {
 		if strings.HasPrefix(e.Message, "lewdbot, ") {
@@ -145,7 +145,7 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 				client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, "Got it!")
 				return
 			default:
-				message = strings.TrimPrefix(e.Message, "lewdbot, ")
+				message = strings.TrimPrefix(message, "lewdbot, ")
 			}
 		}
 		if settings.IsGroupQuiet(e.ChatRoomId) {
@@ -154,7 +154,7 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 		}
 	}
 
-	message = CleanMessage(e.Message)
+	message = CleanMessage(message)
 
 	if len(regex.NotActualText.ReplaceAllString(message, "")) < 3 { // Not enough actual text to bother replying
 		if !IsChatRoom(e.ChatRoomId) {
