@@ -80,7 +80,7 @@ func CleanMessage(message string) string {
 	message = regexp.MustCompile(`\p{Cyrillic}`).ReplaceAllString(message, "")
 
 	// Repeated whitespace
-	message = regexp.MustCompile(`\s+/`).ReplaceAllString(message, "")
+	message = regexp.MustCompile(`\s{2,}/`).ReplaceAllString(message, " ")
 
 	return strings.TrimSpace(message)
 }
