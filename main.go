@@ -271,7 +271,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	settings = LoadSettings()
+	settings = LoadSettings("data/lewdbot.db")
 	defer settings.Close()
 
 	myLoginInfo := new(steam.LogOnDetails)

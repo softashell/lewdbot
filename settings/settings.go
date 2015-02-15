@@ -70,8 +70,8 @@ func (settings Settings) SetGroupQuiet(id uint64, value bool) {
 
 // LoadSettings should be called before anything else, and will give you the
 // object you look up all your settings from.
-func LoadSettings() Settings {
-	db, err := sql.Open("sqlite3", "data/lewdbot.db")
+func LoadSettings(databasename string) Settings {
+	db, err := sql.Open("sqlite3", databasename)
 	if err != nil {
 		log.Fatalf("Opening settings: %s", err)
 	}
