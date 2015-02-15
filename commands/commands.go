@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"github.com/Philipp15b/go-steam"
 	"github.com/Philipp15b/go-steam/steamid"
 	"github.com/softashell/lewdbot/regex"
 	. "github.com/softashell/lewdbot/settings"
@@ -33,6 +34,15 @@ func blacklistList(settings Settings) []string {
 	var list []string
 	for _, group := range groups {
 		list = append(list, fmt.Sprintf("http://steamcommunity.com/gid/%s", group.String()))
+	}
+	return list
+}
+
+func chatList(client *steam.Client) []string {
+	chats := client.Social.Chats.GetCopy()
+	var list []string
+	for _, chat := range chats {
+		list = append(list, fmt.Sprintf("http://steamcommunity.com/gid/%d", chat.GroupId.ToUint64()))
 	}
 	return list
 }
@@ -70,7 +80,7 @@ func masterList(settings Settings) []string {
 // the command specified in the message. It returns a bool saying whether the
 // regular response should be inhibited, and message(s) lewdbot should reply to
 // the admin with.
-func Handle(message string, settings Settings) (bool, []string) {
+func Handle(client *steam.Client, message string, settings Settings) (bool, []string) {
 	if !strings.HasPrefix(message, "!") {
 		return false, []string{}
 	}
@@ -78,6 +88,10 @@ func Handle(message string, settings Settings) (bool, []string) {
 	command := regex.CommandName.FindStringSubmatch(message)[1]
 
 	switch command {
+
+	case "chat.list":
+		return true, chatList(client)
+
 	case "blacklist.add":
 		arg := regex.BlacklistAddArguments.FindStringSubmatch(message)
 
