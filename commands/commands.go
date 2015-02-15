@@ -58,10 +58,10 @@ func masterRemove(settings Settings, arg1 string) []string {
 }
 
 func masterList(settings Settings) []string {
-	groups := settings.ListUserMaster()
+	users := settings.ListUserMaster()
 	var list []string
-	for _, group := range groups {
-		list = append(list, fmt.Sprintf("http://steamcommunity.com/profiles/%d", group.ToUint64()))
+	for _, user := range users {
+		list = append(list, fmt.Sprintf("http://steamcommunity.com/profiles/%d", user.ToUint64()))
 	}
 	return list
 }
