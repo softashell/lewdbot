@@ -144,6 +144,14 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 				settings.SetGroupQuiet(e.ChatRoomId, false)
 				client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, "Got it!")
 				return
+			case strings.HasSuffix(e.Message, "you can come here any time you'd like."):
+				settings.SetGroupAutojoin(e.ChatRoomId, true)
+				client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, "Got it!")
+				return
+			case strings.HasSuffix(e.Message, "stop coming here."):
+				settings.SetGroupAutojoin(e.ChatRoomId, false)
+				client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, "Got it!")
+				return
 			default:
 				message = strings.TrimPrefix(message, "lewdbot, ")
 			}
