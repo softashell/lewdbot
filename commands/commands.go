@@ -36,6 +36,15 @@ func blacklistRemove(settings Settings, arg1 string) []string {
 	return []string{fmt.Sprintf("removed %s from group blacklist", arg1)}
 }
 
+func blacklistList(settings Settings) []string {
+	groups := settings.ListGroupBlacklisted()
+	var list []string
+	for _, group := range groups {
+		list = append(list, group.String())
+	}
+	return list
+}
+
 // Handle takes the full command message and the settings struct and executes
 // the command specified in the message. It returns a bool saying whether the
 // regular response should be inhibited, and message(s) lewdbot should reply to
@@ -74,6 +83,9 @@ func Handle(message string, settings Settings) (bool, []string) {
 		}
 
 		return true, blacklistRemove(settings, arg[1])
+
+	case "blacklist.list":
+		return true, blacklistList(settings)
 
 	default:
 		return true, []string{fmt.Sprintf("unknown command: %s", command)}
