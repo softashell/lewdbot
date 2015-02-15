@@ -107,9 +107,9 @@ func IsMaster(master steamid.SteamId) bool {
 	return false
 }
 
-func ObeyMaster(client *steam.Client, master steamid.SteamId, message string) bool {
+func ObeyMaster(client *steam.Client, master steamid.SteamId, message string) (bool, string) {
 	if !strings.HasPrefix(message, "!") {
-		return false
+		return false, ""
 	}
 
 	log.Printf("Obeying master %s %s", master, message)
@@ -121,15 +121,15 @@ func ObeyMaster(client *steam.Client, master steamid.SteamId, message string) bo
 		arg := regex.AddAdminArguments.FindStringSubmatch(message)
 
 		if len(arg) < 1 {
-			log.Print("not enough arguments")
-			return true
+			return true, "not enough arguments"
 		}
-
-		log.Printf("adding %s to admin list", arg[1])
 
 		if _, err := steamid.NewId(arg[1]); err != nil {
-			log.Print("ERROR: invalid steam id")
+			return true, "ERROR: invalid steam id"
 		}
+
+		return true, fmt.Sprintf("added %s to admin list (but not really, that's not implemented)", arg[1])
+
 	case "blacklist.add":
 		log.Printf("blacklist.add: %s", command)
 	case "blacklist.remove":
@@ -137,7 +137,8 @@ func ObeyMaster(client *steam.Client, master steamid.SteamId, message string) bo
 	default:
 		log.Printf("unknown command: %s", command)
 	}
-	return true
+
+	return true, ""
 }
 
 func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
@@ -146,8 +147,9 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 	}
 
 	if IsMaster(e.ChatterId) {
-		if ObeyMaster(client, e.ChatterId, e.Message) {
+		if master, reply := ObeyMaster(client, e.ChatterId, e.Message); master == true {
 			// Command executed, no need to reply
+			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, reply)
 			return
 		}
 	} else if IsRussian(e.Message) {
