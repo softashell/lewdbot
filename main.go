@@ -147,10 +147,11 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 			default:
 				message = strings.TrimPrefix(message, "lewdbot, ")
 			}
-		}
-		if settings.IsGroupQuiet(e.ChatRoomId) {
-			// todo: logmessage here, without a reply
-			return
+		} else {
+			if settings.IsGroupQuiet(e.ChatRoomId) {
+				// todo: logmessage here, without a reply
+				return
+			}
 		}
 	}
 
