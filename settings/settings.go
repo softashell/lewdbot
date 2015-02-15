@@ -98,8 +98,8 @@ func (settings Settings) SetGroupQuiet(id steamid.SteamId, value bool) {
 	}
 }
 
-// IsUserAdmin looks up whether a user has been remembered as an admin.
-func (settings Settings) IsUserAdmin(id steamid.SteamId) bool {
+// IsUserMaster looks up whether a user has been remembered as an admin.
+func (settings Settings) IsUserMaster(id steamid.SteamId) bool {
 	stmt := `SELECT admin FROM Users WHERE id=?`
 	var fakebool int
 	err := settings.db.QueryRow(stmt, id).Scan(&fakebool)
@@ -112,8 +112,8 @@ func (settings Settings) IsUserAdmin(id steamid.SteamId) bool {
 	return fakebool == 1
 }
 
-// SetUserAdmin sets whether a user should be considered an admin.
-func (settings Settings) SetUserAdmin(id steamid.SteamId, value bool) {
+// SetUserMaster sets whether a user should be considered an admin.
+func (settings Settings) SetUserMaster(id steamid.SteamId, value bool) {
 	settings.createUserEntry(id)
 	stmt := `UPDATE Users SET admin=? WHERE id=?`
 	if _, err := settings.db.Exec(stmt, value, id); err != nil {
@@ -121,8 +121,8 @@ func (settings Settings) SetUserAdmin(id steamid.SteamId, value bool) {
 	}
 }
 
-// ListUserAdmin lists all users that are considered admins.
-func (settings Settings) ListUserAdmin() []steamid.SteamId {
+// ListUserMaster lists all users that are considered admins.
+func (settings Settings) ListUserMaster() []steamid.SteamId {
 	stmt := `SELECT id FROM Users WHERE admin=1`
 	rows, err := settings.db.Query(stmt)
 	if err != nil {

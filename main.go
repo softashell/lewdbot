@@ -105,7 +105,7 @@ func IsMaster(master steamid.SteamId) bool {
 		return true
 	}
 
-	if settings.IsUserAdmin(master) {
+	if settings.IsUserMaster(master) {
 		return true
 	}
 
