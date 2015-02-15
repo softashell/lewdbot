@@ -20,6 +20,7 @@ import (
 type Configuration struct {
 	Username string
 	Password string
+	Master   uint64
 }
 
 var configuration Configuration
@@ -97,9 +98,60 @@ func GenerateReply(client *steam.Client, steamid steamid.SteamId, message string
 	return reply
 }
 
+func IsMaster(master steamid.SteamId) bool {
+	if configuration.Master == master.ToUint64() {
+		return true
+	}
+
+	return false
+}
+
+func ObeyMaster(client *steam.Client, master steamid.SteamId, message string) bool {
+	log.Printf("Obeying master %s %s", master, message)
+
+	if !strings.HasPrefix(message, "!") {
+		return false
+	}
+
+	re := regexp.MustCompile(`^!(\S+)`)
+	argre := regexp.MustCompile(`^!\S+ (\S+)`)
+
+	command := re.FindStringSubmatch(message)[1]
+
+	switch command {
+	case "addadmin":
+		arg := argre.FindStringSubmatch(message)
+
+		if len(arg) < 1 {
+			log.Print("not enough arguments")
+			return true
+		}
+
+		log.Printf("adding %s to admin list", arg[1])
+
+		if _, err := steamid.NewId(arg[1]); err != nil {
+			log.Print("ERROR: invalid steam id")
+		}
+	case "blacklist.add":
+		log.Printf("blacklist.add: %s", command)
+	case "blacklist.remove":
+		log.Printf("blacklist.remove: %s", command)
+	default:
+		log.Printf("unknown command: %s", command)
+	}
+	return true
+}
+
 func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 	if !e.IsMessage() {
 		return
+	}
+
+	if IsMaster(e.ChatterId) {
+		if ObeyMaster(client, e.ChatterId, e.Message) {
+			// Command executed, no need to reply
+			return
+		}
 	}
 
 	if IsRussian(e.Message) && !IsChatRoom(e.ChatRoomId) { // Get out of here stalker
@@ -184,8 +236,13 @@ func AddFriends(client *steam.Client, e *steam.FriendsListEvent) {
 func ChatInviteEvent(client *steam.Client, e *steam.ChatInviteEvent) {
 	if e.ChatRoomType != steamlang.EChatRoomType_Lobby {
 		log.Printf("Invited to %s (%s) by %s %s", e.ChatRoomName, e.ChatRoomId, GetName(client, e.PatronId), e.PatronId)
-		client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "On my way~ I hope you will not keep me in your basement forever~")
-		client.Social.JoinChat(e.ChatRoomId)
+		if !settings.IsGroupBlacklisted(e.ChatRoomId.ToUint64()) {
+			client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "On my way~ I hope you will not keep me in your basement forever~")
+			client.Social.JoinChat(e.ChatRoomId)
+		} else {
+			log.Print("group is blacklisted ")
+			client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "Only disgusting nerds go there~")
+		}
 	}
 }
 
@@ -273,6 +330,10 @@ func main() {
 
 	settings = LoadSettings()
 	defer settings.Close()
+
+	settings.SetGroupBlacklisted(103582791432902485, true)
+	settings.SetGroupBlacklisted(103582791433224455, true)
+	settings.SetGroupBlacklisted(110338190878437182, false)
 
 	myLoginInfo := new(steam.LogOnDetails)
 	myLoginInfo.Username = configuration.Username

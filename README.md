@@ -6,5 +6,6 @@ Save and edit as config.json in $PWD
 {
   "username": "",
   "password": ""
+  "master": 99999999999999999
 }
 ```
