@@ -32,6 +32,6 @@ var (
 var (
 	// CommandName matches !<this> part of a command call.
 	CommandName = regexp.MustCompile(`^!(\S+)`)
-	// AddAdminArguments matches the arguments to the !addadmin command.
-	AddAdminArguments = regexp.MustCompile(`^!\S+ (\S+)`)
+	// AdminAddArguments matches the arguments to the !admin.add command.
+	AdminAddArguments = regexp.MustCompile(`^!\S+ (\S+)`)
 )

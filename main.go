@@ -117,8 +117,8 @@ func ObeyMaster(client *steam.Client, master steamid.SteamId, message string) (b
 	command := regex.CommandName.FindStringSubmatch(message)[1]
 
 	switch command {
-	case "addadmin":
-		arg := regex.AddAdminArguments.FindStringSubmatch(message)
+	case "admin.add":
+		arg := regex.AdminAddArguments.FindStringSubmatch(message)
 
 		if len(arg) < 1 {
 			return true, "not enough arguments"
