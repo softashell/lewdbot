@@ -131,7 +131,30 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 		return
 	}
 
-	message := CleanMessage(e.Message)
+	var message string
+
+	if IsChatRoom(e.ChatRoomId) {
+		if strings.HasPrefix(e.Message, "lewdbot, ") {
+			switch {
+			case strings.HasSuffix(e.Message, "don't speak unless spoken to."):
+				settings.SetGroupQuiet(e.ChatRoomId, true)
+				client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, "Got it!")
+				return
+			case strings.HasSuffix(e.Message, "you may speak freely."):
+				settings.SetGroupQuiet(e.ChatRoomId, false)
+				client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, "Got it!")
+				return
+			default:
+				message = strings.TrimPrefix(e.Message, "lewdbot, ")
+			}
+		}
+		if settings.IsGroupQuiet(e.ChatRoomId) {
+			// todo: logmessage here, without a reply
+			return
+		}
+	}
+
+	message = CleanMessage(e.Message)
 
 	if len(regex.NotActualText.ReplaceAllString(message, "")) < 3 { // Not enough actual text to bother replying
 		if !IsChatRoom(e.ChatRoomId) {
