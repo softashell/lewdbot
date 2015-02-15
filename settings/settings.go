@@ -139,7 +139,7 @@ func (settings Settings) ListUserMaster() []steamid.SteamId {
 		if err != nil {
 			log.Fatal(err)
 		}
-		groups = append(groups, sid)
+		users = append(users, sid)
 	}
 	if err = rows.Err(); err != nil {
 		log.Fatal(err)
