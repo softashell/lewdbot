@@ -45,6 +45,31 @@ func (settings Settings) SetGroupBlacklisted(id steamid.SteamId, value bool) {
 	}
 }
 
+func (settings Settings) ListGroupBlacklisted() []steamid.SteamId {
+	stmt := `SELECT id FROM Groups WHERE blacklisted=1`
+	rows, err := settings.db.Query(stmt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var groups []steamid.SteamId
+	for rows.Next() {
+		var id string
+		err = rows.Scan(&id)
+		if err != nil {
+			log.Fatal(err)
+		}
+		sid, err := steamid.NewId(id)
+		if err != nil {
+			log.Fatal(err)
+		}
+		groups = append(groups, sid)
+	}
+	if err = rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return groups
+}
+
 // IsGroupQuiet looks up whether the group has been remembered as should be
 // treated quietly.
 func (settings Settings) IsGroupQuiet(id steamid.SteamId) bool {
