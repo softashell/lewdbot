@@ -328,8 +328,8 @@ func main() {
 			log.Print("Logged on")
 			client.Social.SetPersonaState(steamlang.EPersonaState_Online)
 			go AutojoinGroups(client)
-		case steam.FatalErrorEvent:
-			log.Print(e)
+		case *steam.DisconnectedEvent:
+			log.Print("DisconnectedEvent: ", e)
 		case *steam.ChatMsgEvent:
 			go ReplyToMessage(client, e)
 		case *steam.FriendStateEvent:
@@ -346,8 +346,16 @@ func main() {
 			client.Social.SendMessage(e.SteamId, steamlang.EChatEntryType_ChatMsg, "Looking forward to working with you~ fu fu fu~")
 		case *steam.PersonaStateEvent:
 			go PersonaStateEvent(client, e)
+		case steam.FatalErrorEvent:
+			log.Print("FatalErrorEvent: ", e)
 		case error:
-			log.Print(e)
+			log.Print("error: ", e)
+			if client.Connected() {
+				log.Print("not attempting to reconnect")
+			} else {
+				log.Print("attempting to reconnect")
+				client.Connect()
+			}
 		}
 	}
 }

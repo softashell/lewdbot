@@ -56,6 +56,26 @@ func chatList(client *steam.Client) []string {
 	return list
 }
 
+func chatJoin(client *steam.Client, arg1 string) []string {
+	id, err := steamid.NewId(arg1)
+	if err != nil {
+		return []string{"invalid group id"}
+	}
+
+	client.Social.JoinChat(id)
+
+	return []string{fmt.Sprintf("joined http://steamcommunity.com/gid/%d", id.ToUint64())}
+}
+
+func chatLeave(client *steam.Client, arg1 string) []string {
+	id, err := steamid.NewId(arg1)
+	if err != nil {
+		return []string{"invalid group id"}
+	}
+
+	return []string{fmt.Sprintf("left http://steamcommunity.com/gid/%d", id.ToUint64())}
+}
+
 func masterAdd(settings Settings, arg1 string) []string {
 	id, err := steamid.NewId(arg1)
 	if err != nil {
@@ -123,6 +143,24 @@ func Handle(client *steam.Client, message string, settings Settings) (bool, []st
 
 	case "chat.list":
 		return true, chatList(client)
+
+	case "chat.join":
+		arg := regex.MasterAddArguments.FindStringSubmatch(message)
+
+		if len(arg) < 1 {
+			return true, []string{"not enough arguments"}
+		}
+
+		return true, chatJoin(client, arg[1])
+
+	case "chat.leave":
+		arg := regex.MasterAddArguments.FindStringSubmatch(message)
+
+		if len(arg) < 1 {
+			return true, []string{"not enough arguments"}
+		}
+
+		return true, chatLeave(client, arg[1])
 
 	case "master.add":
 		arg := regex.MasterAddArguments.FindStringSubmatch(message)
