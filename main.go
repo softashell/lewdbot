@@ -77,7 +77,9 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 			}
 			return
 		}
-	} else if isRussian(e.Message) {
+	}
+
+	if isRussian(e.Message) {
 		if !isChatRoom(e.ChatRoomId) { // Get out of here stalker
 			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "Иди нахуй")
 		}
