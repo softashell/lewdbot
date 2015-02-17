@@ -52,7 +52,7 @@ func GenerateReply(client *steam.Client, steamid steamid.SteamId, message string
 	reply := lewdbrain.Reply(message)
 	reply = strings.TrimSpace(reply)
 
-	reply = strings.Replace(reply, "lewdbot", GetName(client, steamid), 1)
+	reply = strings.Replace(reply, client.Social.GetPersonaName(), GetName(client, steamid), 1)
 	reply = regex.TrailingPunctuation.ReplaceAllString(reply, "")
 	reply = fmt.Sprintf("%s~", reply)
 
@@ -230,7 +230,7 @@ func ChatMemberInfo(client *steam.Client, e *steam.ChatMemberInfoEvent) {
 	if e.Type == steamlang.EChatInfoType_StateChange {
 		if e.StateChangeInfo.ChatterActedOn == client.SteamId() {
 			switch e.StateChangeInfo.StateChange {
-			case steamlang.EChatMemberStateChange_Left:
+			case steamlang.EChatMemberStateChange_Left: // Doesn't get called
 				log.Printf("Left room http://steamcommunity.com/gid/%d", e.ChatRoomId)
 			case steamlang.EChatMemberStateChange_Kicked:
 				log.Printf("Kicked from %s by %s", e.ChatRoomId, GetName(client, e.StateChangeInfo.ChatterActedBy))
