@@ -43,16 +43,6 @@ func learnFileLines(path string) error {
 			continue
 		}
 		lewdbrain.Learn(text)
-		/*
-			sentences := regexp.MustCompile(`(\.+?[\n\.!?]+)`).Split(text, -1)
-			for index, sentence := range sentences {
-				sentence = strings.TrimSpace(sentence)
-				if len(sentence) < 2 {
-					continue
-				}
-				log.Printf("[%d] %s", index, sentence)
-			}
-		*/
 	}
 
 	return nil
