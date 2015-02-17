@@ -73,6 +73,8 @@ func chatLeave(client *steam.Client, arg1 string) []string {
 		return []string{"invalid group id"}
 	}
 
+	client.Social.LeaveChat(id)
+
 	return []string{fmt.Sprintf("left http://steamcommunity.com/gid/%d", id.ToUint64())}
 }
 
