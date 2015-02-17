@@ -133,6 +133,9 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 			for _, reply := range replies {
 				client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, reply)
 			}
+			if len(replies) == 0 {
+				client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "I got nothing!")
+			}
 			return
 		}
 	} else if IsRussian(e.Message) {
