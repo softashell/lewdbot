@@ -64,7 +64,7 @@ func chatJoin(client *steam.Client, arg1 string) []string {
 
 	client.Social.JoinChat(id)
 
-	return []string{fmt.Sprintf("joined http://steamcommunity.com/gid/%d", id.ToUint64())}
+	return []string{fmt.Sprintf("joining http://steamcommunity.com/gid/%d", id.ToUint64())}
 }
 
 func chatLeave(client *steam.Client, arg1 string) []string {
@@ -74,8 +74,10 @@ func chatLeave(client *steam.Client, arg1 string) []string {
 	}
 
 	client.Social.LeaveChat(id)
+	// Social.Chats doesn't get updated when bot leaves normally
+	// Bug with go-steam and/or not implemented
 
-	return []string{fmt.Sprintf("left http://steamcommunity.com/gid/%d", id.ToUint64())}
+	return []string{fmt.Sprintf("attempting to leavet http://steamcommunity.com/gid/%d", id.ToUint64())}
 }
 
 func masterAdd(settings Settings, arg1 string) []string {

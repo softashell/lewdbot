@@ -230,6 +230,8 @@ func ChatMemberInfo(client *steam.Client, e *steam.ChatMemberInfoEvent) {
 	if e.Type == steamlang.EChatInfoType_StateChange {
 		if e.StateChangeInfo.ChatterActedOn == client.SteamId() {
 			switch e.StateChangeInfo.StateChange {
+			case steamlang.EChatMemberStateChange_Left:
+				log.Printf("Left room http://steamcommunity.com/gid/%d", e.ChatRoomId)
 			case steamlang.EChatMemberStateChange_Kicked:
 				log.Printf("Kicked from %s by %s", e.ChatRoomId, GetName(client, e.StateChangeInfo.ChatterActedBy))
 			case steamlang.EChatMemberStateChange_Banned:
@@ -315,7 +317,7 @@ func main() {
 
 	client := steam.NewClient()
 	client.Connect()
-	defer client.Disconnect()
+	//defer client.Disconnect()
 
 	for event := range client.Events() {
 		switch e := event.(type) {
