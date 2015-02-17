@@ -79,13 +79,6 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 		}
 	}
 
-	if isRussian(e.Message) {
-		if !isChatRoom(e.ChatRoomId) { // Get out of here stalker
-			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "Иди нахуй")
-		}
-		return
-	}
-
 	message := e.Message
 
 	if isChatRoom(e.ChatRoomId) {
@@ -116,6 +109,13 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 				return
 			}
 		}
+	}
+
+	if isRussian(e.Message) { // Should be called before cleanMessage since it replaces russian
+		if !isChatRoom(e.ChatRoomId) { // Get out of here stalker
+			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "Иди нахуй")
+		}
+		return
 	}
 
 	message = cleanMessage(message)
