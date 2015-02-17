@@ -74,6 +74,16 @@ func IsChatRoom(steamid steamid.SteamId) bool {
 	return false
 }
 
+func steamLink(s steamid.SteamId) string {
+	switch s.GetAccountType() {
+	case 1: // EAccountType_Individual
+		return fmt.Sprintf("https://steamcommunity.com/profiles/%d", s.ToUint64())
+	case 7: // EAccountType_Clan
+		return fmt.Sprintf("https://steamcommunity.com/gid/%d", s.ToUint64())
+	}
+	return s.ToString()
+}
+
 func CleanMessage(message string) string {
 	message = regex.Link.ReplaceAllString(message, "")
 	message = regex.Emoticon.ReplaceAllString(message, "")
@@ -231,12 +241,12 @@ func LogMessage(client *steam.Client, id steamid.SteamId, chatter steamid.SteamI
 func FriendState(client *steam.Client, e *steam.FriendStateEvent) {
 	switch e.Relationship {
 	case steamlang.EFriendRelationship_None:
-		log.Printf("http://steamcommunity.com/profiles/%d removed me from friends list", e.SteamId.ToUint64())
+		log.Printf("%s removed me from friends list", steamLink(e.SteamId))
 	case steamlang.EFriendRelationship_PendingInvitee:
-		log.Printf("http://steamcommunity.com/profiles/%d added me to friends list", e.SteamId.ToUint64())
+		log.Printf("%s added me to friends list", steamLink(e.SteamId))
 		client.Social.AddFriend(e.SteamId)
 	case steamlang.EFriendRelationship_Friend:
-		log.Printf("%s (http://steamcommunity.com/profiles/%d) is now a friend", GetName(client, e.SteamId), e.SteamId.ToUint64())
+		log.Printf("%s (%s) is now a friend", GetName(client, e.SteamId), steamLink(e.SteamId))
 		StrangerList.Remove(e.SteamId)
 	}
 }
@@ -246,9 +256,9 @@ func AddFriends(client *steam.Client, e *steam.FriendsListEvent) {
 	for id, friend := range client.Social.Friends.GetCopy() {
 		switch friend.Relationship {
 		case steamlang.EFriendRelationship_RequestInitiator:
-			log.Printf("http://steamcommunity.com/profiles/%d still hasn't accepted invite, consider removing", id.ToUint64())
+			log.Printf("%s still hasn't accepted invite, consider removing", steamLink(id))
 		case steamlang.EFriendRelationship_PendingInvitee:
-			log.Printf("http://steamcommunity.com/profiles/%d added me to friends list while I was offline", id.ToUint64())
+			log.Printf("%s added me to friends list while I was offline", steamLink(id))
 			client.Social.AddFriend(id)
 		}
 	}
