@@ -127,6 +127,12 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 	}
 
 	message = cleanMessage(message)
+	var destination steamid.SteamId
+	if isChatRoom(e.ChatRoomId) {
+		destination = e.ChatRoomId
+	} else {
+		destination = e.ChatterId
+	}
 
 	if len(regex.NotActualText.ReplaceAllString(message, "")) < 3 { // Not enough actual text to bother replying
 		if !isChatRoom(e.ChatRoomId) {
@@ -134,12 +140,7 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 		}
 		return
 	} else if regex.Greentext.MatchString(message) {
-		if isChatRoom(e.ChatRoomId) {
-			client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, "Who are you quoting?~")
-		} else {
-			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "Who are you quoting?~")
-		}
-
+		client.Social.SendMessage(destination, steamlang.EChatEntryType_ChatMsg, "Who are you quoting?~")
 		return
 	} else if regex.JustPunctuation.MatchString(message) {
 		return
@@ -147,13 +148,8 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 
 	reply := GenerateReply(client, e.ChatterId, message)
 
-	if isChatRoom(e.ChatRoomId) { // Group chat
-		LogMessage(client, e.ChatRoomId, e.ChatterId, message, reply)
-		client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, reply)
-	} else { // Private message
-		LogMessage(client, e.ChatterId, e.ChatterId, message, reply)
-		client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, reply)
-	}
+	LogMessage(client, destination, e.ChatterId, message, reply)
+	client.Social.SendMessage(destination, steamlang.EChatEntryType_ChatMsg, reply)
 }
 
 func LogMessage(client *steam.Client, id steamid.SteamId, chatter steamid.SteamId, message string, reply string) {
