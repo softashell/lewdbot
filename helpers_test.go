@@ -16,7 +16,7 @@ func TestIsRussian(t *testing.T) {
 
 func TestIsChatRoom(t *testing.T) {
 	if isChatRoom(76561197983301654) != false {
-		//t.Error("False positive") broken? v(´・ω・｀)v
+		t.Error("False positive") //broken? v(´・ω・｀)v
 	}
 	if isChatRoom(103582791435317007) != true {
 		t.Error("Didn't detect")

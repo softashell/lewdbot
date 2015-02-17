@@ -16,7 +16,11 @@ func isRussian(message string) bool {
 }
 
 func isChatRoom(steamid steamid.SteamId) bool {
-	if steamid.ToString() != "0" {
+	switch steamid.GetAccountType() {
+	case 7: //steamlang.EAccountType_Clan:
+		fmt.Print("clan")
+		return true
+	case 8: //steamlang.EAccountType_Chat:
 		return true
 	}
 
