@@ -332,6 +332,8 @@ func main() {
 			go AutojoinGroups(client)
 		case *steam.DisconnectedEvent:
 			log.Print("DisconnectedEvent: ", e)
+			log.Print("attempting to reconnect")
+			client.Connect()
 		case *steam.ChatMsgEvent:
 			go ReplyToMessage(client, e)
 		case *steam.FriendStateEvent:
@@ -352,12 +354,6 @@ func main() {
 			log.Print("FatalErrorEvent: ", e)
 		case error:
 			log.Print("error: ", e)
-			if client.Connected() {
-				log.Print("not attempting to reconnect")
-			} else {
-				log.Print("attempting to reconnect")
-				client.Connect()
-			}
 		}
 	}
 }
