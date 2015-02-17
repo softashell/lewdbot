@@ -90,7 +90,7 @@ func masterList(settings Settings) []string {
 // regular response should be inhibited, and message(s) lewdbot should reply to
 // the admin with.
 func Handle(client *steam.Client, message string, settings Settings) (bool, []string) {
-	if !strings.HasPrefix(message, "!") {
+	if !strings.HasPrefix(message, "!") || len(message) == 1 {
 		return false, []string{}
 	}
 
