@@ -231,12 +231,12 @@ func LogMessage(client *steam.Client, id steamid.SteamId, chatter steamid.SteamI
 func FriendState(client *steam.Client, e *steam.FriendStateEvent) {
 	switch e.Relationship {
 	case steamlang.EFriendRelationship_None:
-		log.Printf("%s removed me from friends list", e.SteamId)
+		log.Printf("http://steamcommunity.com/profiles/%d removed me from friends list", e.SteamId.ToUint64())
 	case steamlang.EFriendRelationship_PendingInvitee:
-		log.Printf("%s added me to friends list", GetName(client, e.SteamId))
+		log.Printf("http://steamcommunity.com/profiles/%d added me to friends list", e.SteamId.ToUint64())
 		client.Social.AddFriend(e.SteamId)
 	case steamlang.EFriendRelationship_Friend:
-		log.Printf("%s is now a friend", GetName(client, e.SteamId))
+		log.Printf("%s (http://steamcommunity.com/profiles/%d) is now a friend", GetName(client, e.SteamId), e.SteamId.ToUint64())
 		StrangerList.Remove(e.SteamId)
 	}
 }
@@ -246,9 +246,9 @@ func AddFriends(client *steam.Client, e *steam.FriendsListEvent) {
 	for id, friend := range client.Social.Friends.GetCopy() {
 		switch friend.Relationship {
 		case steamlang.EFriendRelationship_RequestInitiator:
-			log.Printf("%s %s still hasn't accepted invite, consider removing", GetName(client, id), id)
+			log.Printf("http://steamcommunity.com/profiles/%d still hasn't accepted invite, consider removing", id.ToUint64())
 		case steamlang.EFriendRelationship_PendingInvitee:
-			log.Printf("%s %s added me to friends list", GetName(client, id), id)
+			log.Printf("http://steamcommunity.com/profiles/%d added me to friends list while I was offline", id.ToUint64())
 			client.Social.AddFriend(id)
 		}
 	}
@@ -256,7 +256,7 @@ func AddFriends(client *steam.Client, e *steam.FriendsListEvent) {
 
 func ChatInviteEvent(client *steam.Client, e *steam.ChatInviteEvent) {
 	if e.ChatRoomType != steamlang.EChatRoomType_Lobby {
-		log.Printf("Invited to %s (%s) by %s %s", e.ChatRoomName, e.ChatRoomId, GetName(client, e.PatronId), e.PatronId)
+		log.Printf("Invited to %s (%s) by %s %d", e.ChatRoomName, e.ChatRoomId, GetName(client, e.PatronId), e.PatronId.ToUint64())
 
 		if !settings.IsGroupBlacklisted(e.ChatRoomId) {
 			client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "On my way~ I hope you will not keep me in your basement forever~")
