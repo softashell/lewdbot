@@ -38,7 +38,7 @@ func learnFileLines(path string) error {
 
 	s := bufio.NewScanner(bufio.NewReader(f))
 	for s.Scan() {
-		text := CleanMessage(s.Text())
+		text := cleanMessage(s.Text())
 		if len(text) < 5 {
 			continue
 		}
@@ -58,45 +58,6 @@ func learnFileLines(path string) error {
 	return nil
 }
 
-func IsRussian(message string) bool {
-	if regex.Russian.MatchString(message) {
-		return true
-	}
-
-	return false
-}
-
-func IsChatRoom(steamid steamid.SteamId) bool {
-	if steamid.ToString() != "0" {
-		return true
-	}
-
-	return false
-}
-
-func steamLink(s steamid.SteamId) string {
-	switch s.GetAccountType() {
-	case 1: // EAccountType_Individual
-		return fmt.Sprintf("https://steamcommunity.com/profiles/%d", s.ToUint64())
-	case 7: // EAccountType_Clan
-		return fmt.Sprintf("https://steamcommunity.com/gid/%d", s.ToUint64())
-	}
-	return s.ToString()
-}
-
-func CleanMessage(message string) string {
-	message = regex.Link.ReplaceAllString(message, "")
-	message = regex.Emoticon.ReplaceAllString(message, "")
-	message = regex.Junk.ReplaceAllString(message, "")
-	message = regex.WikipediaCitations.ReplaceAllString(message, "")
-	message = regex.RepeatedWhitespace.ReplaceAllString(message, " ")
-
-	// GET OUT OF HERE STALKER
-	message = regex.Russian.ReplaceAllString(message, "")
-
-	return strings.TrimSpace(message)
-}
-
 func GenerateReply(client *steam.Client, steamid steamid.SteamId, message string) string {
 	reply := lewdbrain.Reply(message)
 	reply = strings.TrimSpace(reply)
@@ -111,24 +72,12 @@ func GenerateReply(client *steam.Client, steamid steamid.SteamId, message string
 	return reply
 }
 
-func IsMaster(master steamid.SteamId) bool {
-	if configuration.Master == master.ToUint64() {
-		return true
-	}
-
-	if settings.IsUserMaster(master) {
-		return true
-	}
-
-	return false
-}
-
 func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 	if !e.IsMessage() {
 		return
 	}
 
-	if IsMaster(e.ChatterId) {
+	if isMaster(e.ChatterId) {
 		if master, replies := commands.Handle(client, e.Message, settings); master == true {
 			for _, reply := range replies {
 				client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, reply)
@@ -138,8 +87,8 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 			}
 			return
 		}
-	} else if IsRussian(e.Message) {
-		if !IsChatRoom(e.ChatRoomId) { // Get out of here stalker
+	} else if isRussian(e.Message) {
+		if !isChatRoom(e.ChatRoomId) { // Get out of here stalker
 			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "Иди нахуй")
 		}
 		return
@@ -147,7 +96,7 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 
 	message := e.Message
 
-	if IsChatRoom(e.ChatRoomId) {
+	if isChatRoom(e.ChatRoomId) {
 		if strings.HasPrefix(strings.ToLower(e.Message), "lewdbot, ") {
 			switch {
 			case strings.HasSuffix(e.Message, "don't speak unless spoken to."):
@@ -177,15 +126,15 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 		}
 	}
 
-	message = CleanMessage(message)
+	message = cleanMessage(message)
 
 	if len(regex.NotActualText.ReplaceAllString(message, "")) < 3 { // Not enough actual text to bother replying
-		if !IsChatRoom(e.ChatRoomId) {
+		if !isChatRoom(e.ChatRoomId) {
 			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "Are you retarded?~")
 		}
 		return
 	} else if regex.Greentext.MatchString(message) {
-		if IsChatRoom(e.ChatRoomId) {
+		if isChatRoom(e.ChatRoomId) {
 			client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, "Who are you quoting?~")
 		} else {
 			client.Social.SendMessage(e.ChatterId, steamlang.EChatEntryType_ChatMsg, "Who are you quoting?~")
@@ -198,7 +147,7 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 
 	reply := GenerateReply(client, e.ChatterId, message)
 
-	if IsChatRoom(e.ChatRoomId) { // Group chat
+	if isChatRoom(e.ChatRoomId) { // Group chat
 		LogMessage(client, e.ChatRoomId, e.ChatterId, message, reply)
 		client.Social.SendMessage(e.ChatRoomId, steamlang.EChatEntryType_ChatMsg, reply)
 	} else { // Private message
@@ -209,7 +158,7 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 
 func LogMessage(client *steam.Client, id steamid.SteamId, chatter steamid.SteamId, message string, reply string) {
 	name := "Nerdgin"
-	if !IsChatRoom(id) {
+	if !isChatRoom(id) {
 		name = GetName(client, id)
 	} else {
 		name = GetName(client, chatter)
