@@ -2,15 +2,17 @@ package shared
 
 type Network interface {
 	Main()
+	ValidateChat(string) (bool, string)
+	ValidateUser(string) (bool, string)
 	ListChats() []string
-	JoinChat(chat string) string
-	LeaveChat(chat string) string
+	JoinChat(chat string)
+	LeaveChat(chat string)
 	ListAutojoinChats() []string
-	ChatBlacklistAdd(chat string) string
-	ChatBlacklistRemove(chat string) string
+	ChatBlacklistAdd(chat string)
+	ChatBlacklistRemove(chat string)
 	ChatBlacklistList() []string
-	MasterAdd(user string) string
-	MasterRemove(user string) string
+	MasterAdd(user string)
+	MasterRemove(user string)
 	MasterList() []string
 }
 

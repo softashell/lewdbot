@@ -1,7 +1,6 @@
 package steam
 
 import (
-	"fmt"
 	"github.com/Philipp15b/go-steam"
 	"github.com/Philipp15b/go-steam/internal/steamlang"
 	"github.com/Philipp15b/go-steam/socialcache"
@@ -31,6 +30,22 @@ func NewClient(s *settings.Settings, u string, p string, m uint64, g shared.Repl
 	}
 }
 
+func (c *Client) ValidateChat(group string) (bool, string) {
+	id, err := steamid.NewId(group)
+	if err != nil {
+		return false, ""
+	}
+	return c.isChatRoom(id), c.link(id)
+}
+
+func (c *Client) ValidateUser(user string) (bool, string) {
+	id, err := steamid.NewId(user)
+	if err != nil {
+		return false, ""
+	}
+	return !c.isChatRoom(id), c.link(id)
+}
+
 func (c *Client) ListChats() []string {
 	var list []string
 	for _, chat := range c.client.Social.Chats.GetCopy() {
@@ -39,28 +54,18 @@ func (c *Client) ListChats() []string {
 	return list
 }
 
-func (c *Client) JoinChat(group string) string {
+func (c *Client) JoinChat(group string) {
 	id, err := steamid.NewId(group)
-	if err != nil {
-		return "invalid group id"
+	if err == nil {
+		c.client.Social.JoinChat(id)
 	}
-
-	c.client.Social.JoinChat(id)
-
-	return fmt.Sprintf("joining %s", c.link(id))
 }
 
-func (c *Client) LeaveChat(group string) string {
+func (c *Client) LeaveChat(group string) {
 	id, err := steamid.NewId(group)
-	if err != nil {
-		return "invalid group id"
+	if err == nil {
+		c.client.Social.LeaveChat(id)
 	}
-
-	c.client.Social.LeaveChat(id)
-	// Social.Chats doesn't get updated when bot leaves normally
-	// Bug with go-steam and/or not implemented
-
-	return fmt.Sprintf("attempting to leave %s", c.link(id))
 }
 
 func (c *Client) ListAutojoinChats() []string {
@@ -72,24 +77,18 @@ func (c *Client) ListAutojoinChats() []string {
 	return list
 }
 
-func (c *Client) ChatBlacklistAdd(group string) string {
+func (c *Client) ChatBlacklistAdd(group string) {
 	id, err := steamid.NewId(group)
-	if err != nil {
-		return "invalid group id"
+	if err == nil {
+		c.Settings.SetGroupBlacklisted(id, true)
 	}
-
-	c.Settings.SetGroupBlacklisted(id, true)
-	return fmt.Sprintf("added %s to group blacklist", c.link(id))
 }
 
-func (c *Client) ChatBlacklistRemove(group string) string {
+func (c *Client) ChatBlacklistRemove(group string) {
 	id, err := steamid.NewId(group)
-	if err != nil {
-		return "invalid group id"
+	if err == nil {
+		c.Settings.SetGroupBlacklisted(id, false)
 	}
-
-	c.Settings.SetGroupBlacklisted(id, false)
-	return fmt.Sprintf("removed %s from group blacklist", c.link(id))
 }
 
 func (c *Client) ChatBlacklistList() []string {
@@ -101,24 +100,18 @@ func (c *Client) ChatBlacklistList() []string {
 	return list
 }
 
-func (c *Client) MasterAdd(user string) string {
+func (c *Client) MasterAdd(user string) {
 	id, err := steamid.NewId(user)
-	if err != nil {
-		return "invalid user id"
+	if err == nil {
+		c.Settings.SetUserMaster(id, true)
 	}
-
-	c.Settings.SetUserMaster(id, true)
-	return fmt.Sprintf("added %s to master list", c.link(id))
 }
 
-func (c *Client) MasterRemove(user string) string {
+func (c *Client) MasterRemove(user string) {
 	id, err := steamid.NewId(user)
-	if err != nil {
-		return "invalid user id"
+	if err == nil {
+		c.Settings.SetUserMaster(id, false)
 	}
-
-	c.Settings.SetUserMaster(id, false)
-	return fmt.Sprintf("removed %s from master list", c.link(id))
 }
 
 func (c *Client) MasterList() []string {

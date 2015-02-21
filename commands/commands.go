@@ -7,16 +7,31 @@ import (
 	"strings"
 )
 
+var ( // autism
+	invalidChatIdentifier = "invalid chat identifier '%s'"
+	invalidUserIdentifier = "invalid user identifier '%s'"
+)
+
 func autojoinList(client shared.Network) []string {
 	return client.ListAutojoinChats()
 }
 
 func blacklistAdd(client shared.Network, arg1 string) []string {
-	return []string{client.ChatBlacklistAdd(arg1)}
+	valid, chat := client.ValidateChat(arg1)
+	if !valid {
+		return []string{fmt.Sprintf(invalidChatIdentifier, arg1)}
+	}
+	client.ChatBlacklistAdd(arg1)
+	return []string{fmt.Sprintf("blacklisted %s", chat)}
 }
 
 func blacklistRemove(client shared.Network, arg1 string) []string {
-	return []string{client.ChatBlacklistRemove(arg1)}
+	valid, chat := client.ValidateChat(arg1)
+	if !valid {
+		return []string{fmt.Sprintf(invalidChatIdentifier, arg1)}
+	}
+	client.ChatBlacklistRemove(arg1)
+	return []string{fmt.Sprintf("removed %s from blacklist", chat)}
 }
 
 func blacklistList(client shared.Network) []string {
@@ -28,19 +43,39 @@ func chatList(client shared.Network) []string {
 }
 
 func chatJoin(client shared.Network, arg1 string) []string {
-	return []string{client.JoinChat(arg1)}
+	valid, chat := client.ValidateChat(arg1)
+	if !valid {
+		return []string{fmt.Sprintf(invalidChatIdentifier, arg1)}
+	}
+	client.JoinChat(arg1)
+	return []string{fmt.Sprintf("joining chat %s", chat)}
 }
 
 func chatLeave(client shared.Network, arg1 string) []string {
-	return []string{client.LeaveChat(arg1)}
+	valid, chat := client.ValidateChat(arg1)
+	if !valid {
+		return []string{fmt.Sprintf(invalidChatIdentifier, arg1)}
+	}
+	client.LeaveChat(arg1)
+	return []string{fmt.Sprintf("leaving chat %s", chat)}
 }
 
 func masterAdd(client shared.Network, arg1 string) []string {
-	return []string{client.MasterAdd(arg1)}
+	valid, user := client.ValidateUser(arg1)
+	if !valid {
+		return []string{fmt.Sprintf(invalidUserIdentifier, arg1)}
+	}
+	client.MasterAdd(arg1)
+	return []string{fmt.Sprintf("adding master %s", user)}
 }
 
 func masterRemove(client shared.Network, arg1 string) []string {
-	return []string{client.MasterRemove(arg1)}
+	valid, user := client.ValidateUser(arg1)
+	if !valid {
+		return []string{fmt.Sprintf(invalidUserIdentifier, arg1)}
+	}
+	client.MasterRemove(arg1)
+	return []string{fmt.Sprintf("removing master %s", user)}
 }
 
 func masterList(client shared.Network) []string {
