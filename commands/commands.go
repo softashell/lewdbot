@@ -2,118 +2,56 @@ package commands
 
 import (
 	"fmt"
-	"github.com/Philipp15b/go-steam"
-	"github.com/Philipp15b/go-steam/steamid"
 	"github.com/softashell/lewdbot/regex"
-	. "github.com/softashell/lewdbot/settings"
+	"github.com/softashell/lewdbot/shared"
 	"strings"
 )
 
-func autojoinList(settings *Settings) []string {
-	groups := settings.ListGroupAutojoin()
-	var list []string
-	for _, group := range groups {
-		list = append(list, fmt.Sprintf("http://steamcommunity.com/gid/%s", group.String()))
-	}
-	return list
+func autojoinList(client shared.Network) []string {
+	return client.ListAutojoinChats()
 }
 
-func blacklistAdd(settings *Settings, arg1 string) []string {
-	id, err := steamid.NewId(arg1)
-	if err != nil {
-		return []string{"invalid group id"}
-	}
-
-	settings.SetGroupBlacklisted(id, true)
-	return []string{fmt.Sprintf("added %s to group blacklist", arg1)}
+func blacklistAdd(client shared.Network, arg1 string) []string {
+	return []string{client.ChatBlacklistAdd(arg1)}
 }
 
-func blacklistRemove(settings *Settings, arg1 string) []string {
-	id, err := steamid.NewId(arg1)
-	if err != nil {
-		return []string{"invalid group id"}
-	}
-
-	settings.SetGroupBlacklisted(id, false)
-	return []string{fmt.Sprintf("removed %s from group blacklist", arg1)}
+func blacklistRemove(client shared.Network, arg1 string) []string {
+	return []string{client.ChatBlacklistRemove(arg1)}
 }
 
-func blacklistList(settings *Settings) []string {
-	groups := settings.ListGroupBlacklisted()
-	var list []string
-	for _, group := range groups {
-		list = append(list, fmt.Sprintf("http://steamcommunity.com/gid/%s", group.String()))
-	}
-	return list
+func blacklistList(client shared.Network) []string {
+	return client.ChatBlacklistList()
 }
 
-func chatList(client *steam.Client) []string {
-	chats := client.Social.Chats.GetCopy()
-	var list []string
-	for _, chat := range chats {
-		list = append(list, fmt.Sprintf("http://steamcommunity.com/gid/%d", chat.GroupId.ToUint64()))
-	}
-	return list
+func chatList(client shared.Network) []string {
+	return client.ListChats()
 }
 
-func chatJoin(client *steam.Client, arg1 string) []string {
-	id, err := steamid.NewId(arg1)
-	if err != nil {
-		return []string{"invalid group id"}
-	}
-
-	client.Social.JoinChat(id)
-
-	return []string{fmt.Sprintf("joining http://steamcommunity.com/gid/%d", id.ToUint64())}
+func chatJoin(client shared.Network, arg1 string) []string {
+	return []string{client.JoinChat(arg1)}
 }
 
-func chatLeave(client *steam.Client, arg1 string) []string {
-	id, err := steamid.NewId(arg1)
-	if err != nil {
-		return []string{"invalid group id"}
-	}
-
-	client.Social.LeaveChat(id)
-	// Social.Chats doesn't get updated when bot leaves normally
-	// Bug with go-steam and/or not implemented
-
-	return []string{fmt.Sprintf("attempting to leavet http://steamcommunity.com/gid/%d", id.ToUint64())}
+func chatLeave(client shared.Network, arg1 string) []string {
+	return []string{client.LeaveChat(arg1)}
 }
 
-func masterAdd(settings *Settings, arg1 string) []string {
-	id, err := steamid.NewId(arg1)
-	if err != nil {
-		return []string{"invalid user id"}
-	}
-
-	settings.SetUserMaster(id, true)
-	return []string{fmt.Sprintf("added %s to master list", arg1)}
+func masterAdd(client shared.Network, arg1 string) []string {
+	return []string{client.MasterAdd(arg1)}
 }
 
-func masterRemove(settings *Settings, arg1 string) []string {
-	id, err := steamid.NewId(arg1)
-	if err != nil {
-		return []string{"invalid user id"}
-	}
-
-	settings.SetUserMaster(id, false)
-	return []string{fmt.Sprintf("removed %s from master list", arg1)}
+func masterRemove(client shared.Network, arg1 string) []string {
+	return []string{client.MasterRemove(arg1)}
 }
 
-func masterList(settings *Settings) []string {
-	users := settings.ListUserMaster()
-	var list []string
-	for _, user := range users {
-		list = append(list, fmt.Sprintf("http://steamcommunity.com/profiles/%d", user.ToUint64()))
-	}
-	return list
+func masterList(client shared.Network) []string {
+	return client.MasterList()
 }
 
 // Handle takes the full command message and the settings struct and executes
 // the command specified in the message. It returns a bool saying whether the
 // regular response should be inhibited, and message(s) lewdbot should reply to
 // the admin with.
-func Handle(client *steam.Client, message string, settings *Settings) (bool, []string) {
+func Handle(client shared.Network, message string) (bool, []string) {
 	if !strings.HasPrefix(message, "!") || len(message) == 1 {
 		return false, []string{}
 	}
@@ -122,7 +60,7 @@ func Handle(client *steam.Client, message string, settings *Settings) (bool, []s
 
 	switch command {
 	case "autojoin.list":
-		return true, autojoinList(settings)
+		return true, autojoinList(client)
 
 	case "blacklist.add":
 		arg := regex.BlacklistAddArguments.FindStringSubmatch(message)
@@ -131,7 +69,7 @@ func Handle(client *steam.Client, message string, settings *Settings) (bool, []s
 			return true, []string{"not enough arguments"}
 		}
 
-		return true, blacklistAdd(settings, arg[1])
+		return true, blacklistAdd(client, arg[1])
 
 	case "blacklist.remove":
 		arg := regex.BlacklistRemoveArguments.FindStringSubmatch(message)
@@ -140,10 +78,10 @@ func Handle(client *steam.Client, message string, settings *Settings) (bool, []s
 			return true, []string{"not enough arguments"}
 		}
 
-		return true, blacklistRemove(settings, arg[1])
+		return true, blacklistRemove(client, arg[1])
 
 	case "blacklist.list":
-		return true, blacklistList(settings)
+		return true, blacklistList(client)
 
 	case "chat.list":
 		return true, chatList(client)
@@ -173,7 +111,7 @@ func Handle(client *steam.Client, message string, settings *Settings) (bool, []s
 			return true, []string{"not enough arguments"}
 		}
 
-		return true, masterAdd(settings, arg[1])
+		return true, masterAdd(client, arg[1])
 
 	case "master.remove":
 		arg := regex.MasterRemoveArguments.FindStringSubmatch(message)
@@ -182,10 +120,10 @@ func Handle(client *steam.Client, message string, settings *Settings) (bool, []s
 			return true, []string{"not enough arguments"}
 		}
 
-		return true, masterRemove(settings, arg[1])
+		return true, masterRemove(client, arg[1])
 
 	case "master.list":
-		return true, masterList(settings)
+		return true, masterList(client)
 
 	default:
 		return true, []string{fmt.Sprintf("unknown command: %s", command)}
