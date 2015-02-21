@@ -3,8 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/Philipp15b/go-steam"
-	"github.com/Philipp15b/go-steam/steamid"
 	cobe "github.com/pteichman/go.cobe"
 	"github.com/softashell/lewdbot/regex"
 	"log"
@@ -32,12 +30,10 @@ func learnFileLines(path string) error {
 	return nil
 }
 
-// TODO: remove need for *steam.Client and steamid.SteamId arguments
-func GenerateReply(client *steam.Client, steamid steamid.SteamId, message string) string {
+func GenerateReply(message string) string {
 	reply := lewdbrain.Reply(message)
 	reply = strings.TrimSpace(reply)
 
-	reply = strings.Replace(reply, client.Social.GetPersonaName(), steamName(client, steamid), 1)
 	reply = regex.TrailingPunctuation.ReplaceAllString(reply, "")
 	reply = fmt.Sprintf("%s~", reply)
 

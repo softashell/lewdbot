@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func autojoinList(settings Settings) []string {
+func autojoinList(settings *Settings) []string {
 	groups := settings.ListGroupAutojoin()
 	var list []string
 	for _, group := range groups {
@@ -18,7 +18,7 @@ func autojoinList(settings Settings) []string {
 	return list
 }
 
-func blacklistAdd(settings Settings, arg1 string) []string {
+func blacklistAdd(settings *Settings, arg1 string) []string {
 	id, err := steamid.NewId(arg1)
 	if err != nil {
 		return []string{"invalid group id"}
@@ -28,7 +28,7 @@ func blacklistAdd(settings Settings, arg1 string) []string {
 	return []string{fmt.Sprintf("added %s to group blacklist", arg1)}
 }
 
-func blacklistRemove(settings Settings, arg1 string) []string {
+func blacklistRemove(settings *Settings, arg1 string) []string {
 	id, err := steamid.NewId(arg1)
 	if err != nil {
 		return []string{"invalid group id"}
@@ -38,7 +38,7 @@ func blacklistRemove(settings Settings, arg1 string) []string {
 	return []string{fmt.Sprintf("removed %s from group blacklist", arg1)}
 }
 
-func blacklistList(settings Settings) []string {
+func blacklistList(settings *Settings) []string {
 	groups := settings.ListGroupBlacklisted()
 	var list []string
 	for _, group := range groups {
@@ -80,7 +80,7 @@ func chatLeave(client *steam.Client, arg1 string) []string {
 	return []string{fmt.Sprintf("attempting to leavet http://steamcommunity.com/gid/%d", id.ToUint64())}
 }
 
-func masterAdd(settings Settings, arg1 string) []string {
+func masterAdd(settings *Settings, arg1 string) []string {
 	id, err := steamid.NewId(arg1)
 	if err != nil {
 		return []string{"invalid user id"}
@@ -90,7 +90,7 @@ func masterAdd(settings Settings, arg1 string) []string {
 	return []string{fmt.Sprintf("added %s to master list", arg1)}
 }
 
-func masterRemove(settings Settings, arg1 string) []string {
+func masterRemove(settings *Settings, arg1 string) []string {
 	id, err := steamid.NewId(arg1)
 	if err != nil {
 		return []string{"invalid user id"}
@@ -100,7 +100,7 @@ func masterRemove(settings Settings, arg1 string) []string {
 	return []string{fmt.Sprintf("removed %s from master list", arg1)}
 }
 
-func masterList(settings Settings) []string {
+func masterList(settings *Settings) []string {
 	users := settings.ListUserMaster()
 	var list []string
 	for _, user := range users {
@@ -113,7 +113,7 @@ func masterList(settings Settings) []string {
 // the command specified in the message. It returns a bool saying whether the
 // regular response should be inhibited, and message(s) lewdbot should reply to
 // the admin with.
-func Handle(client *steam.Client, message string, settings Settings) (bool, []string) {
+func Handle(client *steam.Client, message string, settings *Settings) (bool, []string) {
 	if !strings.HasPrefix(message, "!") || len(message) == 1 {
 		return false, []string{}
 	}
