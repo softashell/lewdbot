@@ -99,11 +99,11 @@ func ReplyToMessage(client *steam.Client, e *steam.ChatMsgEvent) {
 }
 
 func LogMessage(client *steam.Client, id steamid.SteamId, chatter steamid.SteamId, message string, reply string) {
-	name := "Nerdgin"
+	var name string
 	if !isChatRoom(id) {
-		name = GetName(client, id)
+		name = steamName(client, id)
 	} else {
-		name = GetName(client, chatter)
+		name = steamName(client, chatter)
 	}
 
 	filename := fmt.Sprintf("%d", id.ToUint64())
@@ -140,7 +140,7 @@ func FriendState(client *steam.Client, e *steam.FriendStateEvent) {
 		log.Printf("%s added me to friends list", steamLink(e.SteamId))
 		client.Social.AddFriend(e.SteamId)
 	case steamlang.EFriendRelationship_Friend:
-		log.Printf("%s (%s) is now a friend", GetName(client, e.SteamId), steamLink(e.SteamId))
+		log.Printf("%s (%s) is now a friend", steamName(client, e.SteamId), steamLink(e.SteamId))
 		StrangerList.Remove(e.SteamId)
 	}
 }
@@ -160,7 +160,7 @@ func AddFriends(client *steam.Client, e *steam.FriendsListEvent) {
 
 func ChatInviteEvent(client *steam.Client, e *steam.ChatInviteEvent) {
 	if e.ChatRoomType != steamlang.EChatRoomType_Lobby {
-		log.Printf("Invited to %s (%s) by %s %d", e.ChatRoomName, e.ChatRoomId, GetName(client, e.PatronId), e.PatronId.ToUint64())
+		log.Printf("Invited to %s (%s) by %s %d", e.ChatRoomName, e.ChatRoomId, steamName(client, e.PatronId), e.PatronId.ToUint64())
 
 		if !settings.IsGroupBlacklisted(e.ChatRoomId) {
 			client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "On my way~ I hope you will not keep me in your basement forever~")
@@ -187,26 +187,12 @@ func ChatMemberInfo(client *steam.Client, e *steam.ChatMemberInfoEvent) {
 			case steamlang.EChatMemberStateChange_Left: // Doesn't get called
 				log.Printf("Left room http://steamcommunity.com/gid/%d", e.ChatRoomId)
 			case steamlang.EChatMemberStateChange_Kicked:
-				log.Printf("Kicked from %s by %s", e.ChatRoomId, GetName(client, e.StateChangeInfo.ChatterActedBy))
+				log.Printf("Kicked from %s by %s", e.ChatRoomId, steamName(client, e.StateChangeInfo.ChatterActedBy))
 			case steamlang.EChatMemberStateChange_Banned:
-				log.Printf("Kicked and banned from %s by %s", e.ChatRoomId, GetName(client, e.StateChangeInfo.ChatterActedBy))
+				log.Printf("Kicked and banned from %s by %s", e.ChatRoomId, steamName(client, e.StateChangeInfo.ChatterActedBy))
 			}
 		}
 	}
-}
-
-func GetName(client *steam.Client, friendid steamid.SteamId) string {
-	nerd, err := client.Social.Friends.ById(friendid)
-	if err == nil {
-		return nerd.Name
-	}
-
-	nerd, err = StrangerList.ById(friendid)
-	if err == nil {
-		return nerd.Name
-	}
-
-	return "Nerdgin"
 }
 
 func PersonaStateEvent(client *steam.Client, e *steam.PersonaStateEvent) {

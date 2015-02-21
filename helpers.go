@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Philipp15b/go-steam"
 	"github.com/Philipp15b/go-steam/steamid"
 	"github.com/softashell/lewdbot/regex"
 	"strings"
@@ -35,6 +36,20 @@ func steamLink(s steamid.SteamId) string {
 		return fmt.Sprintf("https://steamcommunity.com/gid/%d", s.ToUint64())
 	}
 	return s.ToString()
+}
+
+func steamName(client *steam.Client, friendid steamid.SteamId) string {
+	nerd, err := client.Social.Friends.ById(friendid)
+	if err == nil {
+		return nerd.Name
+	}
+
+	nerd, err = StrangerList.ById(friendid)
+	if err == nil {
+		return nerd.Name
+	}
+
+	return "Nerdgin"
 }
 
 func cleanMessage(message string) string {

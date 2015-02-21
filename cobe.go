@@ -37,7 +37,7 @@ func GenerateReply(client *steam.Client, steamid steamid.SteamId, message string
 	reply := lewdbrain.Reply(message)
 	reply = strings.TrimSpace(reply)
 
-	reply = strings.Replace(reply, client.Social.GetPersonaName(), GetName(client, steamid), 1)
+	reply = strings.Replace(reply, client.Social.GetPersonaName(), steamName(client, steamid), 1)
 	reply = regex.TrailingPunctuation.ReplaceAllString(reply, "")
 	reply = fmt.Sprintf("%s~", reply)
 
