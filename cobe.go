@@ -52,7 +52,6 @@ func init_cobe() {
 	if err != nil {
 		log.Fatalf("Opening brain file: %s", err)
 	}
-	defer cobebrain.Close()
 
 	lewdbrain = cobebrain
 
