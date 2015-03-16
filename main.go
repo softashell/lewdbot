@@ -42,7 +42,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	init_cobe()
+	init_chat()
 
 	settings = LoadSettings("data/lewdbot.db")
 	defer settings.Close()
