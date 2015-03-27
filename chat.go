@@ -5,29 +5,50 @@ import (
 	"fmt"
 	"github.com/pteichman/fate"
 	"github.com/softashell/lewdbot/regex"
+	"log"
 	"os"
 	"strings"
 )
 
 var lewdbrain *fate.Model
 
-func learnFileLines(path string) error {
+func learnFileLines(path string, simple bool) error {
 	f, err := os.Open(path)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
+	text := ""
+
 	s := bufio.NewScanner(bufio.NewReader(f))
 	for s.Scan() {
-		text := cleanMessage(s.Text())
-		if len(text) < 5 {
-			continue
+		line := s.Text()
+		if !simple { //Learn all lines between empty lines
+			if line == "" {
+				learnMessage(text)
+				text = ""
+			} else {
+				text += " " + line
+			}
+		} else { // Learn every line
+			learnMessage(line)
 		}
-		lewdbrain.Learn(text)
 	}
 
 	return s.Err()
+}
+
+func learnMessage(text string) {
+	text = cleanMessage(text)
+
+	log.Printf("MSG: %s\n", text)
+
+	if len(text) < 5 || strings.Count(text, " ") < 2 {
+		return
+	}
+
+	lewdbrain.Learn(text)
 }
 
 func GenerateReply(message string) string {
@@ -38,7 +59,7 @@ func GenerateReply(message string) string {
 	reply = fmt.Sprintf("%s~", reply)
 
 	// TODO: Stop the cancer
-	lewdbrain.Learn(message)
+	learnMessage(message)
 
 	return reply
 }
@@ -48,6 +69,6 @@ func init_chat() {
 
 	lewdbrain = model
 
-	learnFileLines("./data/brain.txt")
-	learnFileLines("./chatlog.txt")
+	learnFileLines("./data/brain.txt", true)
+	learnFileLines("./chatlog.txt", false)
 }
