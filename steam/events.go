@@ -116,7 +116,7 @@ func (c *Client) logMessage(id steamid.SteamId, chatter steamid.SteamId, message
 	}
 	defer f.Close()
 
-	if _, err = f.WriteString(fmt.Sprintf("%s\n", message)); err != nil {
+	if _, err = f.WriteString(fmt.Sprintf("%s\n\n", message)); err != nil {
 		log.Print(err)
 	}
 
