@@ -85,12 +85,12 @@ func (c *Client) chatMsgEvent(e *steam.ChatMsgEvent) {
 	} else if regex.Greentext.MatchString(message) {
 		c.client.Social.SendMessage(destination, steamlang.EChatEntryType_ChatMsg, "Who are you quoting?~")
 		return
-	} else if regex.JustPunctuation.MatchString(message) {
+	} else if regex.JustPunctuation.MatchString(message) || regex.LeadingNumbers.MatchString(message) {
 		return
 	}
 
 	reply := c.GenerateReply(message)
-	reply = strings.Replace(reply, c.client.Social.GetPersonaName(), c.name(e.ChatterId), 1)
+	reply = regex.Lewdbot.ReplaceAllString(reply, c.name(e.ChatterId))
 
 	c.logMessage(destination, e.ChatterId, message, reply)
 	c.client.Social.SendMessage(destination, steamlang.EChatEntryType_ChatMsg, reply)

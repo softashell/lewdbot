@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/pteichman/fate"
 	"github.com/softashell/lewdbot/regex"
-	"log"
 	"os"
 	"strings"
 )
@@ -42,9 +41,10 @@ func learnFileLines(path string, simple bool) error {
 func learnMessage(text string) {
 	text = cleanMessage(text)
 
-	log.Printf("MSG: %s\n", text)
-
-	if len(text) < 5 || strings.Count(text, " ") < 2 {
+	if len(text) < 5 ||
+		strings.Count(text, " ") < 2 ||
+		regex.JustPunctuation.MatchString(text) ||
+		regex.LeadingNumbers.MatchString(text) {
 		return
 	}
 

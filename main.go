@@ -25,6 +25,7 @@ func cleanMessage(message string) string {
 	message = regex.Junk.ReplaceAllString(message, "")
 	message = regex.WikipediaCitations.ReplaceAllString(message, "")
 	message = regex.RepeatedWhitespace.ReplaceAllString(message, " ")
+	message = regex.Actions.ReplaceAllString(message, " ")
 
 	// GET OUT OF HERE STALKER
 	message = regex.Russian.ReplaceAllString(message, "")
