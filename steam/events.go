@@ -135,7 +135,7 @@ func (c *Client) friendStateEvent(e *steam.FriendStateEvent) {
 	switch e.Relationship {
 	case steamlang.EFriendRelationship_None:
 		log.Printf("%s removed me from friends list", c.link(e.SteamId))
-	case steamlang.EFriendRelationship_PendingInvitee:
+	case steamlang.EFriendRelationship_RequestRecipient:
 		log.Printf("%s added me to friends list", c.link(e.SteamId))
 		c.client.Social.AddFriend(e.SteamId)
 	case steamlang.EFriendRelationship_Friend:
@@ -150,7 +150,7 @@ func (c *Client) friendsListEvent(e *steam.FriendsListEvent) {
 		switch friend.Relationship {
 		case steamlang.EFriendRelationship_RequestInitiator:
 			log.Printf("%s still hasn't accepted invite, consider removing", c.link(id))
-		case steamlang.EFriendRelationship_PendingInvitee:
+		case steamlang.EFriendRelationship_RequestRecipient:
 			log.Printf("%s added me to friends list while I was offline", c.link(id))
 			c.client.Social.AddFriend(id)
 		}
