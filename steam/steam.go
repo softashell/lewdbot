@@ -129,7 +129,6 @@ func (c *Client) Main() {
 	myLoginInfo.Password = c.Password
 
 	c.client.Connect()
-	//defer client.Disconnect()
 
 	for event := range c.client.Events() {
 		switch e := event.(type) {
@@ -164,10 +163,6 @@ func (c *Client) Main() {
 			go c.personaStateEvent(e)
 		case steam.FatalErrorEvent:
 			log.Print("FatalErrorEvent: ", e)
-
-			if e.Error == steam.EResult_AccountLogonDenied {
-				log.Print("puff")
-			}
 		case error:
 			log.Print("error: ", e)
 		}
