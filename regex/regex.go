@@ -24,8 +24,14 @@ var (
 	NotActualText = regexp.MustCompile(`[^\p{L} ]`)
 	// Greentext matches '>lines like these'
 	Greentext = regexp.MustCompile(`^>`)
+	// *whips out cancer*
+	Actions = regexp.MustCompile(`\*.*\*`)
+	// Lewdbot
+	Lewdbot = regexp.MustCompile(`(?i)lewdbot`)
 	// JustPunctuation matches weird junk people send as empty messages.
 	JustPunctuation = regexp.MustCompile(`^[\.\\/!?:]`)
+	// Kills chatlog pasting
+	LeadingNumbers = regexp.MustCompile(`^\d{2,}`)
 )
 
 // !commands
