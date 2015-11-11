@@ -128,6 +128,8 @@ func (c *Client) Main() {
 	myLoginInfo.Username = c.Username
 	myLoginInfo.Password = c.Password
 
+	steam.InitializeSteamDirectory()
+
 	c.client.Connect()
 
 	for event := range c.client.Events() {
