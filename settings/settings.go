@@ -5,7 +5,7 @@ package settings
 
 import (
 	"database/sql"
-	"github.com/Philipp15b/go-steam/steamid"
+	"github.com/softashell/go-steam/steamid"
 	_ "github.com/mattn/go-sqlite3" // sql driver
 	"log"
 )

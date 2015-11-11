@@ -2,7 +2,7 @@ package steam
 
 import (
 	"fmt"
-	"github.com/Philipp15b/go-steam/steamid"
+	"github.com/softashell/go-steam/steamid"
 	"github.com/softashell/lewdbot/regex"
 )
 

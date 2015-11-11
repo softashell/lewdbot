@@ -1,10 +1,10 @@
 package steam
 
 import (
-	"github.com/Philipp15b/go-steam"
-	"github.com/Philipp15b/go-steam/internal/steamlang"
-	"github.com/Philipp15b/go-steam/socialcache"
-	"github.com/Philipp15b/go-steam/steamid"
+	"github.com/softashell/go-steam"
+	"github.com/softashell/go-steam/_internal/steamlang"
+	"github.com/softashell/go-steam/socialcache"
+	"github.com/softashell/go-steam/steamid"
 	"github.com/softashell/lewdbot/settings"
 	"github.com/softashell/lewdbot/shared"
 	"io/ioutil"
@@ -164,6 +164,10 @@ func (c *Client) Main() {
 			go c.personaStateEvent(e)
 		case steam.FatalErrorEvent:
 			log.Print("FatalErrorEvent: ", e)
+
+			if e.Error == steam.EResult_AccountLogonDenied {
+				log.Print("puff")
+			}
 		case error:
 			log.Print("error: ", e)
 		}

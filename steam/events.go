@@ -2,10 +2,10 @@ package steam
 
 import (
 	"fmt"
-	"github.com/Philipp15b/go-steam"
-	"github.com/Philipp15b/go-steam/internal/steamlang"
-	"github.com/Philipp15b/go-steam/socialcache"
-	"github.com/Philipp15b/go-steam/steamid"
+	"github.com/softashell/go-steam"
+	"github.com/softashell/go-steam/_internal/steamlang"
+	"github.com/softashell/go-steam/socialcache"
+	"github.com/softashell/go-steam/steamid"
 	"github.com/softashell/lewdbot/commands"
 	"github.com/softashell/lewdbot/regex"
 	"log"
