@@ -19,7 +19,7 @@ var (
 	RepeatedWhitespace = regexp.MustCompile(`\s{2,}/`)
 	// TrailingPunctuation matches any punctuation at the end of the message, to
 	// be replaced with a tilde~
-	TrailingPunctuation = regexp.MustCompile(`[\.,—-]+$`)
+	TrailingPunctuation = regexp.MustCompile(`[\.,—\-\~]+$`)
 	// NotActualText matches everything that's not Latin text or spaces.
 	NotActualText = regexp.MustCompile(`[^\p{L} ]`)
 	// Greentext matches '>lines like these'
