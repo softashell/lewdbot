@@ -1,7 +1,8 @@
 # lewdbot
 Awful steam bot written in Go
 
-Save and edit as config.json in $PWD
+To set up login details and owner:
+save and edit this as config.json in $PWD
 ```JSON
 {
   "username": "",

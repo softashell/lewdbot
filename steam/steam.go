@@ -1,6 +1,7 @@
 package steam
 
 import (
+	"fmt"
 	"github.com/softashell/go-steam"
 	"github.com/softashell/go-steam/_internal/steamlang"
 	"github.com/softashell/go-steam/socialcache"
@@ -128,6 +129,9 @@ func (c *Client) Main() {
 	myLoginInfo.Username = c.Username
 	myLoginInfo.Password = c.Password
 
+	// Attempt to read existing auth hash to avoid steam guard
+	myLoginInfo.SentryFileHash, _ = ioutil.ReadFile("sentry")
+
 	steam.InitializeSteamDirectory()
 
 	c.client.Connect()
@@ -138,14 +142,26 @@ func (c *Client) Main() {
 			log.Print("Connecting")
 			c.client.Auth.LogOn(myLoginInfo)
 		case *steam.MachineAuthUpdateEvent:
+			log.Print("Updated auth hash, it should no longer ask for auth!")
 			ioutil.WriteFile("sentry", e.Hash, 0666)
 		case *steam.LoggedOnEvent:
 			log.Print("Logged on")
 			c.client.Social.SetPersonaState(steamlang.EPersonaState_Online)
 			go c.autojoinGroups()
+		case *steam.LogOnFailedEvent:
+			if e.Result == steamlang.EResult_AccountLogonDenied {
+				log.Print("Steam guard isn't letting me in! Enter auth code:")
+				var authcode string
+				fmt.Scanf("%s", &authcode)
+				myLoginInfo.AuthCode = authcode
+			} else {
+				log.Print("LogOnFailedEvent: ", e.Result)
+				// TODO: Handle EResult_InvalidLoginAuthCode
+				return
+			}
 		case *steam.DisconnectedEvent:
-			log.Print("DisconnectedEvent: ", e)
-			log.Print("attempting to reconnect")
+			log.Print("Disconnected")
+			log.Print("Attempting to reconnect...")
 			c.client.Connect()
 		case *steam.ChatMsgEvent:
 			go c.chatMsgEvent(e)
