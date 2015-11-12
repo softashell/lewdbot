@@ -18,6 +18,10 @@ func (c *Client) chatMsgEvent(e *steam.ChatMsgEvent) {
 		return
 	}
 
+	if c.Settings.IsUserBanned(e.ChatterId) {
+		return
+	}
+
 	if c.isMaster(e.ChatterId) {
 		if master, replies := commands.Handle(c, e.Message); master == true {
 			for _, reply := range replies {
@@ -137,7 +141,13 @@ func (c *Client) friendStateEvent(e *steam.FriendStateEvent) {
 		log.Printf("%s removed me from friends list", c.link(e.SteamId))
 	case steamlang.EFriendRelationship_RequestRecipient:
 		log.Printf("%s added me to friends list", c.link(e.SteamId))
-		c.client.Social.AddFriend(e.SteamId)
+
+		if !c.Settings.IsUserBanned(e.SteamId) {
+			c.client.Social.AddFriend(e.SteamId)
+		} else {
+			log.Printf("%s is banned, ignoring friend request", c.link(e.SteamId))
+			c.client.Social.RemoveFriend(e.SteamId)
+		}
 	case steamlang.EFriendRelationship_Friend:
 		log.Printf("%s (%s) is now a friend", c.name(e.SteamId), c.link(e.SteamId))
 		c.strangerList.Remove(e.SteamId)
@@ -152,7 +162,14 @@ func (c *Client) friendsListEvent(e *steam.FriendsListEvent) {
 			log.Printf("%s still hasn't accepted invite, consider removing", c.link(id))
 		case steamlang.EFriendRelationship_RequestRecipient:
 			log.Printf("%s added me to friends list while I was offline", c.link(id))
-			c.client.Social.AddFriend(id)
+
+			if !c.Settings.IsUserBanned(id) {
+				c.client.Social.AddFriend(id)
+			} else {
+				log.Printf("%s is banned, ignoring friend request", c.link(id))
+				c.client.Social.RemoveFriend(id)
+			}
+
 		}
 	}
 }
@@ -161,11 +178,18 @@ func (c *Client) chatInviteEvent(e *steam.ChatInviteEvent) {
 	if e.ChatRoomType != steamlang.EChatRoomType_Lobby {
 		log.Printf("Invited to %s (%s) by %s %d", e.ChatRoomName, e.ChatRoomId, c.name(e.PatronId), e.PatronId.ToUint64())
 
+		if c.Settings.IsUserBanned(e.PatronId) {
+			// Doesn't seem to be triggered since banning user also puts it in steam blacklist, but it doesn't hurt to leave it here
+			log.Printf("Banned user %s (%s) attempted to invite to group chat", c.name(e.PatronId), e.PatronId.ToUint64())
+			c.client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "(......Is this subhuman talking to ME???????? Get a clue....)")
+			return
+		}
+
 		if !c.Settings.IsGroupBlacklisted(e.ChatRoomId) {
 			c.client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "On my way~ I hope you will not keep me in your basement forever~")
 			c.client.Social.JoinChat(e.ChatRoomId)
 		} else {
-			log.Print("group is blacklisted ")
+			log.Printf("User %s (%s) attempted to invite me to blacklisted group chat", c.name(e.PatronId), e.PatronId.ToUint64())
 			c.client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "Only disgusting nerds go there~")
 		}
 	}

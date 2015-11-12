@@ -14,6 +14,9 @@ type Network interface {
 	MasterAdd(user string)
 	MasterRemove(user string)
 	MasterList() []string
+	BanAdd(user string)
+	BanRemove(user string)
+	BanList() []string
 }
 
 type ReplyGenerator func(string) string

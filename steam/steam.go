@@ -124,6 +124,34 @@ func (c *Client) MasterList() []string {
 	return list
 }
 
+func (c *Client) BanAdd(user string) {
+	id, err := steamid.NewId(user)
+	if err == nil {
+		c.Settings.SetUserBanned(id, true)
+
+		c.client.Social.IgnoreFriend(id, true)
+		c.client.Social.RemoveFriend(id)
+	}
+}
+
+func (c *Client) BanRemove(user string) {
+	id, err := steamid.NewId(user)
+	if err == nil {
+		c.Settings.SetUserBanned(id, false)
+
+		c.client.Social.IgnoreFriend(id, false)
+	}
+}
+
+func (c *Client) BanList() []string {
+	users := c.Settings.ListUserBanned()
+	var list []string
+	for _, user := range users {
+		list = append(list, c.link(user))
+	}
+	return list
+}
+
 func (c *Client) Main() {
 	myLoginInfo := new(steam.LogOnDetails)
 	myLoginInfo.Username = c.Username

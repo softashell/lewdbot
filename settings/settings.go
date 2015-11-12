@@ -5,8 +5,8 @@ package settings
 
 import (
 	"database/sql"
-	"github.com/softashell/go-steam/steamid"
 	_ "github.com/mattn/go-sqlite3" // sql driver
+	"github.com/softashell/go-steam/steamid"
 	"log"
 )
 
@@ -175,6 +175,55 @@ func (settings *Settings) SetUserMaster(id steamid.SteamId, value bool) {
 // ListUserMaster lists all users that are considered admins.
 func (settings *Settings) ListUserMaster() []steamid.SteamId {
 	stmt := `SELECT id FROM Users WHERE admin=1`
+	rows, err := settings.db.Query(stmt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var users []steamid.SteamId
+	for rows.Next() {
+		var id string
+		err = rows.Scan(&id)
+		if err != nil {
+			log.Fatal(err)
+		}
+		sid, err := steamid.NewId(id)
+		if err != nil {
+			log.Fatal(err)
+		}
+		users = append(users, sid)
+	}
+	if err = rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return users
+}
+
+// SetUserBanned sets whether a user should be ignored
+func (settings *Settings) SetUserBanned(id steamid.SteamId, value bool) {
+	settings.createUserEntry(id)
+	stmt := `UPDATE Users SET banned=? WHERE id=?`
+	if _, err := settings.db.Exec(stmt, value, id); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// IsUserBanned looks up whether a user has been set to be ignored
+func (settings *Settings) IsUserBanned(id steamid.SteamId) bool {
+	stmt := `SELECT banned FROM Users WHERE id=?`
+	var fakebool int
+	err := settings.db.QueryRow(stmt, id).Scan(&fakebool)
+	switch {
+	case err == sql.ErrNoRows:
+		return false
+	case err != nil:
+		log.Fatal(err)
+	}
+	return fakebool == 1
+}
+
+// ListUserBanned lists all users that are considered subhumans
+func (settings *Settings) ListUserBanned() []steamid.SteamId {
+	stmt := `SELECT id FROM Users WHERE banned=1`
 	rows, err := settings.db.Query(stmt)
 	if err != nil {
 		log.Fatal(err)

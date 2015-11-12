@@ -82,6 +82,28 @@ func masterList(client shared.Network) []string {
 	return client.MasterList()
 }
 
+func banAdd(client shared.Network, arg1 string) []string {
+	valid, user := client.ValidateUser(arg1)
+	if !valid {
+		return []string{fmt.Sprintf(invalidUserIdentifier, arg1)}
+	}
+	client.BanAdd(arg1)
+	return []string{fmt.Sprintf("banning user %s", user)}
+}
+
+func banRemove(client shared.Network, arg1 string) []string {
+	valid, user := client.ValidateUser(arg1)
+	if !valid {
+		return []string{fmt.Sprintf(invalidUserIdentifier, arg1)}
+	}
+	client.BanRemove(arg1)
+	return []string{fmt.Sprintf("unbanning user %s", user)}
+}
+
+func banList(client shared.Network) []string {
+	return client.BanList()
+}
+
 // Handle takes the full command message and the settings struct and executes
 // the command specified in the message. It returns a bool saying whether the
 // regular response should be inhibited, and message(s) lewdbot should reply to
@@ -159,6 +181,27 @@ func Handle(client shared.Network, message string) (bool, []string) {
 
 	case "master.list":
 		return true, masterList(client)
+
+	case "ban.add":
+		arg := regex.MasterAddArguments.FindStringSubmatch(message)
+
+		if len(arg) < 1 {
+			return true, []string{"not enough arguments"}
+		}
+
+		return true, banAdd(client, arg[1])
+
+	case "ban.remove":
+		arg := regex.MasterRemoveArguments.FindStringSubmatch(message)
+
+		if len(arg) < 1 {
+			return true, []string{"not enough arguments"}
+		}
+
+		return true, banRemove(client, arg[1])
+
+	case "ban.list":
+		return true, banList(client)
 
 	default:
 		return true, []string{fmt.Sprintf("unknown command: %s", command)}

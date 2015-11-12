@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-var totalMigrations = 3
+var totalMigrations = 4
 
 func migrate(db *sql.DB) {
 	rows, err := db.Query("SELECT * FROM Migrations")
@@ -39,6 +39,10 @@ func migrate(db *sql.DB) {
 		migrate3(db)
 		latestMigration = 3
 	}
+	if latestMigration == 3 {
+		migrate4(db)
+		latestMigration = 4
+	}
 }
 
 func execAndPrint(db *sql.DB, stmt string) {
@@ -55,6 +59,7 @@ func migrateAll(db *sql.DB) {
 	migrate1(db)
 	migrate2(db)
 	migrate3(db)
+	migrate4(db)
 }
 
 func migrate1(db *sql.DB) {
@@ -99,4 +104,12 @@ func migrate3(db *sql.DB) {
 	execAndPrint(db, `ALTER TABLE Groups ADD COLUMN autojoin INT DEFAULT 0`)
 
 	db.Exec(`INSERT INTO migrations VALUES (3)`)
+}
+
+func migrate4(db *sql.DB) {
+	log.Print("Migration #4")
+
+	execAndPrint(db, `ALTER TABLE Users ADD COLUMN banned INT DEFAULT 0`)
+
+	db.Exec(`INSERT INTO migrations VALUES (4)`)
 }
