@@ -19,5 +19,5 @@ type Network interface {
 	BanList() []string
 }
 
-type ReplyGenerator func(string) string
+type ReplyGenerator func(string) (string, bool)
 type MessageCleaner func(string) string

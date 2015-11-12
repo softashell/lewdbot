@@ -53,7 +53,7 @@ func main() {
 		configuration.Username,
 		configuration.Password,
 		configuration.Master,
-		GenerateReply,
+		generateReply,
 		cleanMessage,
 	)
 	client.Main()

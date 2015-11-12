@@ -93,16 +93,29 @@ func (c *Client) chatMsgEvent(e *steam.ChatMsgEvent) {
 		return
 	}
 
-	reply := c.GenerateReply(message)
+	reply, learned := c.GenerateReply(message)
 	reply = regex.Lewdbot.ReplaceAllString(reply, c.name(e.ChatterId))
 
-	c.logMessage(destination, e.ChatterId, message, reply)
+	c.logMessage(destination, e.ChatterId, message, reply, learned)
 	c.client.Social.SendMessage(destination, steamlang.EChatEntryType_ChatMsg, reply)
 }
 
 // todo move to main
-func (c *Client) logMessage(id steamid.SteamId, chatter steamid.SteamId, message string, reply string) {
+func (c *Client) logMessage(id steamid.SteamId, chatter steamid.SteamId, message string, reply string, learned bool) {
 	var name string
+
+	if learned { // If message was learned while generating reply add it to chatlog.txt and learn it every time
+		f, err := os.OpenFile("chatlog.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+
+		if _, err = f.WriteString(fmt.Sprintf("%s\n\n", message)); err != nil {
+			log.Print(err)
+		}
+	}
+
 	if !c.isChatRoom(id) {
 		name = c.name(id)
 	} else {
@@ -112,19 +125,9 @@ func (c *Client) logMessage(id steamid.SteamId, chatter steamid.SteamId, message
 	filename := fmt.Sprintf("%d", id.ToUint64())
 	text := fmt.Sprintf("%s: %s\nlewdbot: %s\n", name, message, reply)
 
-	log.Print(text)
+	log.Printf("Learned: %t\n%s", learned, text)
 
-	f, err := os.OpenFile("chatlog.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	if _, err = f.WriteString(fmt.Sprintf("%s\n\n", message)); err != nil {
-		log.Print(err)
-	}
-
-	f, err = os.OpenFile(fmt.Sprintf("./logs/%s.txt", filename), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+	f, err := os.OpenFile(fmt.Sprintf("./logs/%s.txt", filename), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		panic(err)
 	}

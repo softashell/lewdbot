@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pteichman/fate"
 	"github.com/softashell/lewdbot/regex"
+	"math"
 	"os"
 	"strings"
 )
@@ -38,20 +39,23 @@ func learnFileLines(path string, simple bool) error {
 	return s.Err()
 }
 
-func learnMessage(text string) {
+func learnMessage(text string) bool {
 	text = cleanMessage(text)
 
 	if len(text) < 5 ||
 		strings.Count(text, " ") < 2 ||
 		regex.JustPunctuation.MatchString(text) ||
-		regex.LeadingNumbers.MatchString(text) {
-		return
+		regex.LeadingNumbers.MatchString(text) ||
+		generateEntropy(text) < 3.0 {
+		return false // Text doesn't contain enough information
 	}
 
 	lewdbrain.Learn(text)
+
+	return true
 }
 
-func GenerateReply(message string) string {
+func generateReply(message string) (string, bool) {
 	reply := lewdbrain.Reply(message)
 	reply = strings.TrimSpace(reply)
 
@@ -59,9 +63,22 @@ func GenerateReply(message string) string {
 	reply = fmt.Sprintf("%s~", reply)
 
 	// TODO: Stop the cancer
-	learnMessage(message)
 
-	return reply
+	return reply, learnMessage(message)
+}
+
+func generateEntropy(s string) (e float64) {
+	m := make(map[rune]bool)
+	for _, r := range s {
+		if m[r] {
+			continue
+		}
+		m[r] = true
+		n := strings.Count(s, string(r))
+		p := float64(n) / float64(len(s))
+		e += p * math.Log(p) / math.Log(2)
+	}
+	return math.Abs(e)
 }
 
 func init_chat() {
