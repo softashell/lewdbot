@@ -46,6 +46,7 @@ func learnMessage(text string) bool {
 		strings.Count(text, " ") < 2 ||
 		regex.JustPunctuation.MatchString(text) ||
 		regex.LeadingNumbers.MatchString(text) ||
+		getWordCount(text) < 3 ||
 		generateEntropy(text) < 3.0 {
 		return false // Text doesn't contain enough information
 	}
@@ -79,6 +80,17 @@ func generateEntropy(s string) (e float64) {
 		e += p * math.Log(p) / math.Log(2)
 	}
 	return math.Abs(e)
+}
+
+func getWordCount(s string) int {
+	strs := strings.Fields(s)
+	res := make(map[string]int)
+
+	for _, str := range strs {
+		res[strings.ToLower(str)]++
+	}
+
+	return len(res)
 }
 
 func init_chat() {
