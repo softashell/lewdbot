@@ -43,6 +43,7 @@ func learnMessage(text string) bool {
 	text = cleanMessage(text)
 
 	if len(text) < 5 ||
+		len(text) > 1000 ||
 		strings.Count(text, " ") < 2 ||
 		regex.JustPunctuation.MatchString(text) ||
 		regex.LeadingNumbers.MatchString(text) ||

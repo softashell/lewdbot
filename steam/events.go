@@ -74,6 +74,7 @@ func (c *Client) chatMsgEvent(e *steam.ChatMsgEvent) {
 	}
 
 	message = c.CleanMessage(message)
+
 	var destination steamid.SteamId
 	if c.isChatRoom(e.ChatRoomId) {
 		destination = e.ChatRoomId
