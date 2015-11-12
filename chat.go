@@ -44,10 +44,9 @@ func learnMessage(text string) bool {
 
 	if len(text) < 5 ||
 		len(text) > 1000 ||
-		strings.Count(text, " ") < 2 ||
+		getWordCount(text) < 3 ||
 		regex.JustPunctuation.MatchString(text) ||
 		regex.LeadingNumbers.MatchString(text) ||
-		getWordCount(text) < 3 ||
 		generateEntropy(text) < 3.0 {
 		return false // Text doesn't contain enough information
 	}
@@ -63,8 +62,6 @@ func generateReply(message string) (string, bool) {
 
 	reply = regex.TrailingPunctuation.ReplaceAllString(reply, "")
 	reply = fmt.Sprintf("%s~", reply)
-
-	// TODO: Stop the cancer
 
 	return reply, learnMessage(message)
 }
@@ -100,5 +97,5 @@ func init_chat() {
 	lewdbrain = model
 
 	learnFileLines("./data/brain.txt", true)
-	learnFileLines("./chatlog.txt", false)
+	learnFileLines("./data/chatlog.txt", false)
 }

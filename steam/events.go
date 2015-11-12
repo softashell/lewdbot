@@ -106,7 +106,7 @@ func (c *Client) logMessage(id steamid.SteamId, chatter steamid.SteamId, message
 	var name string
 
 	if learned { // If message was learned while generating reply add it to chatlog.txt and learn it every time
-		f, err := os.OpenFile("chatlog.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+		f, err := os.OpenFile("./data/chatlog.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
 			panic(err)
 		}

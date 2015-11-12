@@ -158,7 +158,7 @@ func (c *Client) Main() {
 	myLoginInfo.Password = c.Password
 
 	// Attempt to read existing auth hash to avoid steam guard
-	myLoginInfo.SentryFileHash, _ = ioutil.ReadFile("sentry")
+	myLoginInfo.SentryFileHash, _ = ioutil.ReadFile("./data/sentry")
 
 	steam.InitializeSteamDirectory()
 
@@ -171,7 +171,7 @@ func (c *Client) Main() {
 			c.client.Auth.LogOn(myLoginInfo)
 		case *steam.MachineAuthUpdateEvent:
 			log.Print("Updated auth hash, it should no longer ask for auth!")
-			ioutil.WriteFile("sentry", e.Hash, 0666)
+			ioutil.WriteFile("./data/sentry", e.Hash, 0666)
 		case *steam.LoggedOnEvent:
 			log.Print("Logged on")
 			c.client.Social.SetPersonaState(steamlang.EPersonaState_Online)
