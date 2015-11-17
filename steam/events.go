@@ -188,6 +188,7 @@ func (c *Client) chatInviteEvent(e *steam.ChatInviteEvent) {
 			c.client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "(......Is this subhuman talking to ME???????? Get a clue....)")
 		} else if !c.Settings.IsGroupBlacklisted(e.ChatRoomId) {
 			c.client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "On my way~ I hope you will not keep me in your basement forever~")
+			c.inviteList.Add(e.ChatRoomId, e.PatronId)
 			c.client.Social.JoinChat(e.ChatRoomId)
 		} else {
 			log.Printf("User %s (%d) attempted to invite me to blacklisted group chat", c.name(e.PatronId), e.PatronId.ToUint64())
@@ -204,7 +205,22 @@ func (c *Client) chatEnterEvent(e *steam.ChatEnterEvent) {
 		log.Printf("Joined %s (%s)", e.Name, e.ChatRoomId)
 	} else {
 		log.Printf("Failed to join %s! Respone: %s", e.ChatRoomId, e.EnterResponse)
+
+		inviter := c.inviteList.byId[e.ChatRoomId]
+
+		if inviter != 0 {
+			switch e.EnterResponse {
+			case steamlang.EChatRoomEnterResponse_CommunityBan:
+				c.client.Social.SendMessage(inviter, steamlang.EChatEntryType_ChatMsg, "https://my.mixtape.moe/kakvya.png pls no bully")
+			case steamlang.EChatRoomEnterResponse_Banned:
+				c.client.Social.SendMessage(inviter, steamlang.EChatEntryType_ChatMsg, "nerds don't want to see me there ;-;")
+			default:
+				c.client.Social.SendMessage(inviter, steamlang.EChatEntryType_ChatMsg, "couldn't join chat room, better luck next time~")
+			}
+		}
 	}
+
+	c.inviteList.Remove(e.ChatRoomId)
 }
 
 func (c *Client) chatMemberInfoEvent(e *steam.ChatMemberInfoEvent) {

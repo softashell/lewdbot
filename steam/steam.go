@@ -20,6 +20,7 @@ type Client struct {
 	GenerateReply shared.ReplyGenerator
 	CleanMessage  shared.MessageCleaner
 	strangerList  *socialcache.FriendsList
+	inviteList    *InviteList
 	client        *steam.Client
 }
 
@@ -27,6 +28,7 @@ func NewClient(s *settings.Settings, u string, p string, m uint64, g shared.Repl
 	return &Client{
 		s, u, p, m, g, c,
 		socialcache.NewFriendsList(),
+		NewInviteList(),
 		steam.NewClient(),
 	}
 }
