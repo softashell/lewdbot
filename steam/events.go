@@ -195,7 +195,7 @@ func (c *Client) chatInviteEvent(e *steam.ChatInviteEvent) {
 		}
 	} else { // Game lobby
 		log.Printf("User %s (%d) attempted to invite me to game (%d) lobby", c.name(e.PatronId), e.PatronId.ToUint64(), e.GameId)
-		c.client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "I'm not very good at video games~")
+		c.client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "I don't play bad video games~")
 	}
 }
 
