@@ -179,23 +179,23 @@ func (c *Client) friendsListEvent(e *steam.FriendsListEvent) {
 }
 
 func (c *Client) chatInviteEvent(e *steam.ChatInviteEvent) {
-	if e.ChatRoomType != steamlang.EChatRoomType_Lobby {
+	if e.ChatRoomType != steamlang.EChatRoomType_Lobby { // Group chat or multi user chat
 		log.Printf("Invited to %s (%d) by %s (%d)", e.ChatRoomName, e.ChatRoomId, c.name(e.PatronId), e.PatronId.ToUint64())
 
 		if c.Settings.IsUserBanned(e.PatronId) {
 			// Doesn't seem to be triggered since banning user also puts it in steam blacklist, but it doesn't hurt to leave it here
 			log.Printf("Banned user %s (%d) attempted to invite to group chat", c.name(e.PatronId), e.PatronId.ToUint64())
 			c.client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "(......Is this subhuman talking to ME???????? Get a clue....)")
-			return
-		}
-
-		if !c.Settings.IsGroupBlacklisted(e.ChatRoomId) {
+		} else if !c.Settings.IsGroupBlacklisted(e.ChatRoomId) {
 			c.client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "On my way~ I hope you will not keep me in your basement forever~")
 			c.client.Social.JoinChat(e.ChatRoomId)
 		} else {
 			log.Printf("User %s (%d) attempted to invite me to blacklisted group chat", c.name(e.PatronId), e.PatronId.ToUint64())
 			c.client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "Only disgusting nerds go there~")
 		}
+	} else { // Game lobby
+		log.Printf("User %s (%d) attempted to invite me to game (%d) lobby", c.name(e.PatronId), e.PatronId.ToUint64(), e.GameId)
+		c.client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "I'm not very good at video games~")
 	}
 }
 
