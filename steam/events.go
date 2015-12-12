@@ -139,6 +139,10 @@ func (c *Client) logMessage(id steamid.SteamId, chatter steamid.SteamId, message
 	}
 }
 
+func (c *Client) friendAddedEvent(e *steam.FriendAddedEvent) {
+	c.client.Social.SendMessage(e.SteamId, steamlang.EChatEntryType_ChatMsg, "Looking forward to working with you~ fu fu fu~")
+}
+
 func (c *Client) friendStateEvent(e *steam.FriendStateEvent) {
 	switch e.Relationship {
 	case steamlang.EFriendRelationship_None:
@@ -187,17 +191,16 @@ func (c *Client) friendsListEvent(e *steam.FriendsListEvent) {
 			//TODO:Actually accept them, needs some work on go-steam
 		}
 	}
+
+	// Request missed chat messages when friends list is fully loaded
+	c.client.Social.RequestOfflineMessages()
 }
 
 func (c *Client) chatInviteEvent(e *steam.ChatInviteEvent) {
 	if e.ChatRoomType != steamlang.EChatRoomType_Lobby { // Group chat or multi user chat
 		log.Printf("Invited to %s (%d) by %s (%d)", e.ChatRoomName, e.ChatRoomId, c.name(e.PatronId), e.PatronId.ToUint64())
 
-		if c.Settings.IsUserBanned(e.PatronId) {
-			// Doesn't seem to be triggered since banning user also puts it in steam blacklist, but it doesn't hurt to leave it here
-			log.Printf("Banned user %s (%d) attempted to invite to group chat", c.name(e.PatronId), e.PatronId.ToUint64())
-			c.client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "(......Is this subhuman talking to ME???????? Get a clue....)")
-		} else if !c.Settings.IsGroupBlacklisted(e.ChatRoomId) {
+		if !c.Settings.IsGroupBlacklisted(e.ChatRoomId) {
 			c.client.Social.SendMessage(e.PatronId, steamlang.EChatEntryType_ChatMsg, "On my way~ I hope you will not keep me in your basement forever~")
 			c.inviteList.Add(e.ChatRoomId, e.PatronId)
 			c.client.Social.JoinChat(e.ChatRoomId)
@@ -214,16 +217,18 @@ func (c *Client) chatInviteEvent(e *steam.ChatInviteEvent) {
 func (c *Client) chatEnterEvent(e *steam.ChatEnterEvent) {
 	log.Println("chatEnterEvent", e)
 
+	inviter := c.inviteList.byId[e.ChatRoomId]
+
+	if inviter != 0 {
+		c.inviteList.Remove(e.ChatRoomId)
+	}
+
 	if e.EnterResponse == steamlang.EChatRoomEnterResponse_Success {
 		log.Printf("Joined %s (%s)", e.Name, e.ChatRoomId)
 	} else {
 		log.Printf("Failed to join %s! Respone: %s", e.ChatRoomId, e.EnterResponse)
 
-		inviter := c.inviteList.byId[e.ChatRoomId]
-
 		if inviter != 0 {
-			c.inviteList.Remove(e.ChatRoomId)
-
 			switch e.EnterResponse {
 			case steamlang.EChatRoomEnterResponse_CommunityBan:
 				c.client.Social.SendMessage(inviter, steamlang.EChatEntryType_ChatMsg, "https://my.mixtape.moe/kakvya.png pls no bully")
@@ -234,7 +239,6 @@ func (c *Client) chatEnterEvent(e *steam.ChatEnterEvent) {
 			}
 		}
 	}
-
 }
 
 func (c *Client) chatMemberInfoEvent(e *steam.ChatMemberInfoEvent) {

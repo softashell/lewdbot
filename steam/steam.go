@@ -197,21 +197,18 @@ func (c *Client) Main() {
 			go c.chatMsgEvent(e)
 		case *steam.FriendMessageHistoryEvent:
 			log.Printf("FriendMessageHistoryEvent: Missed chat messages from %s (%d)\n", c.name(e.SteamId), e.SteamId.ToUint64())
+		case *steam.FriendAddedEvent:
+			go c.friendAddedEvent(e)
 		case *steam.FriendStateEvent:
 			go c.friendStateEvent(e)
 		case *steam.FriendsListEvent:
 			go c.friendsListEvent(e)
-
-			// Request missed chat messages when friends list is fully loaded
-			go c.client.Social.RequestOfflineMessages()
 		case *steam.ChatInviteEvent:
 			go c.chatInviteEvent(e)
 		case *steam.ChatEnterEvent:
 			go c.chatEnterEvent(e)
 		case *steam.ChatMemberInfoEvent:
 			go c.chatMemberInfoEvent(e)
-		case *steam.FriendAddedEvent:
-			c.client.Social.SendMessage(e.SteamId, steamlang.EChatEntryType_ChatMsg, "Looking forward to working with you~ fu fu fu~")
 		case *steam.PersonaStateEvent:
 			go c.personaStateEvent(e)
 		case steam.FatalErrorEvent:
