@@ -158,8 +158,10 @@ func (c *Client) friendStateEvent(e *steam.FriendStateEvent) {
 	}
 }
 
-// Adds friends who added bot while it was offline
+// Called after logging in and getting full friend and group list
 func (c *Client) friendsListEvent(e *steam.FriendsListEvent) {
+	// TODO: Clean up friends list when it's almost full
+	// Accepts all pending friend invites
 	for id, friend := range c.client.Social.Friends.GetCopy() {
 		switch friend.Relationship {
 		case steamlang.EFriendRelationship_RequestInitiator:
@@ -173,7 +175,16 @@ func (c *Client) friendsListEvent(e *steam.FriendsListEvent) {
 				log.Printf("%s is banned, ignoring friend request", c.link(id))
 				c.client.Social.RemoveFriend(id)
 			}
+		}
+	}
 
+	// Lists pending group invites
+	for id, group := range c.client.Social.Groups.GetCopy() {
+		switch group.Relationship {
+		case steamlang.EClanRelationship_Invited:
+			log.Printf("Pending invite to join group %s\n", c.link(id))
+
+			//TODO:Actually accept them, needs some work on go-steam
 		}
 	}
 }
@@ -201,6 +212,8 @@ func (c *Client) chatInviteEvent(e *steam.ChatInviteEvent) {
 }
 
 func (c *Client) chatEnterEvent(e *steam.ChatEnterEvent) {
+	log.Println("chatEnterEvent", e)
+
 	if e.EnterResponse == steamlang.EChatRoomEnterResponse_Success {
 		log.Printf("Joined %s (%s)", e.Name, e.ChatRoomId)
 	} else {
@@ -209,6 +222,8 @@ func (c *Client) chatEnterEvent(e *steam.ChatEnterEvent) {
 		inviter := c.inviteList.byId[e.ChatRoomId]
 
 		if inviter != 0 {
+			c.inviteList.Remove(e.ChatRoomId)
+
 			switch e.EnterResponse {
 			case steamlang.EChatRoomEnterResponse_CommunityBan:
 				c.client.Social.SendMessage(inviter, steamlang.EChatEntryType_ChatMsg, "https://my.mixtape.moe/kakvya.png pls no bully")
@@ -220,7 +235,6 @@ func (c *Client) chatEnterEvent(e *steam.ChatEnterEvent) {
 		}
 	}
 
-	c.inviteList.Remove(e.ChatRoomId)
 }
 
 func (c *Client) chatMemberInfoEvent(e *steam.ChatMemberInfoEvent) {
