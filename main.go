@@ -32,14 +32,18 @@ func cleanMessage(message string) string {
 }
 
 func main() {
-	os.Mkdir("./data", 0777)
-	os.Mkdir("./logs", 0777)
+	file, err := os.Open("./config.json")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	file, _ := os.Open("./config.json")
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&configuration); err != nil {
 		log.Fatal(err)
 	}
+
+	os.Mkdir("./data", 0777)
+	os.Mkdir("./logs", 0777)
 
 	init_chat()
 
