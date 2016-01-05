@@ -215,8 +215,6 @@ func (c *Client) chatInviteEvent(e *steam.ChatInviteEvent) {
 }
 
 func (c *Client) chatEnterEvent(e *steam.ChatEnterEvent) {
-	log.Println("chatEnterEvent", e)
-
 	inviter := c.inviteList.byId[e.ChatRoomId]
 
 	if inviter != 0 {
@@ -231,7 +229,7 @@ func (c *Client) chatEnterEvent(e *steam.ChatEnterEvent) {
 		if inviter != 0 {
 			switch e.EnterResponse {
 			case steamlang.EChatRoomEnterResponse_CommunityBan:
-				c.client.Social.SendMessage(inviter, steamlang.EChatEntryType_ChatMsg, "https://my.mixtape.moe/kakvya.png pls no bully")
+				c.client.Social.SendMessage(inviter, steamlang.EChatEntryType_ChatMsg, "~banned from steam community~")
 			case steamlang.EChatRoomEnterResponse_Banned:
 				c.client.Social.SendMessage(inviter, steamlang.EChatEntryType_ChatMsg, "nerds don't want to see me there ;-;")
 			default:
