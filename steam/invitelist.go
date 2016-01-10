@@ -1,7 +1,7 @@
 package steam
 
 import (
-	. "github.com/softashell/go-steam/steamid"
+	. "github.com/Philipp15b/go-steam/steamid"
 	"sync"
 )
 
