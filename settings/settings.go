@@ -5,8 +5,8 @@ package settings
 
 import (
 	"database/sql"
+	"github.com/Philipp15b/go-steam/steamid"
 	_ "github.com/mattn/go-sqlite3" // sql driver
-	"github.com/softashell/go-steam/steamid"
 	"log"
 )
 
@@ -245,6 +245,27 @@ func (settings *Settings) ListUserBanned() []steamid.SteamId {
 		log.Fatal(err)
 	}
 	return users
+}
+
+func (settings *Settings) SetUserLastUse(id steamid.SteamId, value int64) {
+	settings.createUserEntry(id)
+	stmt := `UPDATE Users SET lastuse=? WHERE id=?`
+	if _, err := settings.db.Exec(stmt, value, id); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (settings *Settings) GetUserLastUse(id steamid.SteamId) int64 {
+	stmt := `SELECT lastuse FROM Users WHERE id=?`
+	var lastuse int64
+	err := settings.db.QueryRow(stmt, id).Scan(&lastuse)
+	switch {
+	case err == sql.ErrNoRows:
+		return 0
+	case err != nil:
+		log.Fatal(err)
+	}
+	return lastuse
 }
 
 // LoadSettings should be called before anything else, and will give you the
