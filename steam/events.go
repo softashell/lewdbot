@@ -9,8 +9,10 @@ import (
 	"github.com/softashell/lewdbot/commands"
 	"github.com/softashell/lewdbot/regex"
 	"log"
+	"math/rand"
 	"os"
 	"strings"
+	"time"
 )
 
 func (c *Client) chatMsgEvent(e *steam.ChatMsgEvent) {
@@ -98,7 +100,14 @@ func (c *Client) chatMsgEvent(e *steam.ChatMsgEvent) {
 	reply = regex.Lewdbot.ReplaceAllString(reply, c.name(e.ChatterId))
 
 	c.logMessage(destination, e.ChatterId, message, reply, learned)
-	c.client.Social.SendMessage(destination, EChatEntryType_ChatMsg, reply)
+
+	go func() {
+		if destination != e.ChatRoomId {
+			time.Sleep(time.Second * time.Duration(rand.Intn(2)+1))
+		}
+
+		c.client.Social.SendMessage(destination, EChatEntryType_ChatMsg, reply)
+	}()
 }
 
 // todo move to main
@@ -146,9 +155,12 @@ func (c *Client) friendAddedEvent(e *steam.FriendAddedEvent) {
 func (c *Client) friendStateEvent(e *steam.FriendStateEvent) {
 	switch e.Relationship {
 	case EFriendRelationship_None:
-		log.Printf("%s removed me from friends list", c.link(e.SteamId))
+		log.Printf("%s (%s) is no longer a friend", c.name(e.SteamId), c.link(e.SteamId))
+		// TODO: Clean up user table in settings
 	case EFriendRelationship_RequestRecipient:
 		log.Printf("%s added me to friends list", c.link(e.SteamId))
+
+		// TODO: Clean up friends list when it's almost full
 
 		if !c.Settings.IsUserBanned(e.SteamId) {
 			c.client.Social.AddFriend(e.SteamId)
@@ -159,12 +171,12 @@ func (c *Client) friendStateEvent(e *steam.FriendStateEvent) {
 	case EFriendRelationship_Friend:
 		log.Printf("%s (%s) is now a friend", c.name(e.SteamId), c.link(e.SteamId))
 		c.strangerList.Remove(e.SteamId)
+		c.Settings.SetUserLastUse(e.SteamId, time.Now().Unix())
 	}
 }
 
 // Called after logging in and getting full friend and group list
 func (c *Client) friendsListEvent(e *steam.FriendsListEvent) {
-	// TODO: Clean up friends list when it's almost full
 	// Accepts all pending friend invites
 	for id, friend := range c.client.Social.Friends.GetCopy() {
 		switch friend.Relationship {
@@ -172,6 +184,8 @@ func (c *Client) friendsListEvent(e *steam.FriendsListEvent) {
 			log.Printf("%s still hasn't accepted invite, consider removing", c.link(id))
 		case EFriendRelationship_RequestRecipient:
 			log.Printf("%s added me to friends list while I was offline", c.link(id))
+
+			// TODO: Clean up friends list when it's almost full
 
 			if !c.Settings.IsUserBanned(id) {
 				c.client.Social.AddFriend(id)
