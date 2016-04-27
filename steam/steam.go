@@ -3,7 +3,7 @@ package steam
 import (
 	"fmt"
 	"github.com/Philipp15b/go-steam"
-	"github.com/Philipp15b/go-steam/protocol/steamlang"
+	. "github.com/Philipp15b/go-steam/protocol/steamlang"
 	"github.com/Philipp15b/go-steam/socialcache"
 	"github.com/Philipp15b/go-steam/steamid"
 	"github.com/softashell/lewdbot/settings"
@@ -154,6 +154,20 @@ func (c *Client) BanList() []string {
 	return list
 }
 
+func (c *Client) ShouldCleanUpFriends() bool {
+	// Friend limit: 250 + (5 * level)
+
+	return true
+}
+
+func (c *Client) RemoveDeadFriends() bool {
+	log.Println("Removing dead friends")
+
+	// TODO: Go trough all friends and find longest offline, if that's not enough compare last use time
+
+	return true
+}
+
 func (c *Client) Main() {
 	myLoginInfo := new(steam.LogOnDetails)
 	myLoginInfo.Username = c.Username
@@ -176,10 +190,10 @@ func (c *Client) Main() {
 			ioutil.WriteFile("./data/sentry", e.Hash, 0666)
 		case *steam.LoggedOnEvent:
 			log.Print("Logged on")
-			c.client.Social.SetPersonaState(steamlang.EPersonaState_Online)
+			c.client.Social.SetPersonaState(EPersonaState_Online)
 			go c.autojoinGroups()
 		case *steam.LogOnFailedEvent:
-			if e.Result == steamlang.EResult_AccountLogonDenied {
+			if e.Result == EResult_AccountLogonDenied {
 				log.Print("Steam guard isn't letting me in! Enter auth code:")
 				var authcode string
 				fmt.Scanf("%s", &authcode)

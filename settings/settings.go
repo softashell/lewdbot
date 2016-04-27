@@ -49,6 +49,7 @@ func (settings *Settings) SetGroupBlacklisted(id steamid.SteamId, value bool) {
 	}
 }
 
+// ListGroupBlacklisted returns all blacklisted groups ids
 func (settings *Settings) ListGroupBlacklisted() []steamid.SteamId {
 	stmt := `SELECT id FROM Groups WHERE blacklisted=1`
 	rows, err := settings.db.Query(stmt)
@@ -247,6 +248,7 @@ func (settings *Settings) ListUserBanned() []steamid.SteamId {
 	return users
 }
 
+// SetUserLastUse sets unix timestamp of last interaction with bot
 func (settings *Settings) SetUserLastUse(id steamid.SteamId, value int64) {
 	settings.createUserEntry(id)
 	stmt := `UPDATE Users SET lastuse=? WHERE id=?`
@@ -255,6 +257,7 @@ func (settings *Settings) SetUserLastUse(id steamid.SteamId, value int64) {
 	}
 }
 
+// GetUserLastUse gets unix timestamp of last interaction with bot
 func (settings *Settings) GetUserLastUse(id steamid.SteamId) int64 {
 	stmt := `SELECT lastuse FROM Users WHERE id=?`
 	var lastuse int64
