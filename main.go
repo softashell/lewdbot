@@ -2,12 +2,15 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/softashell/lewdbot/regex"
-	. "github.com/softashell/lewdbot/settings"
-	"github.com/softashell/lewdbot/steam"
+	"fmt"
 	"log"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/softashell/lewdbot/regex"
+	. "github.com/softashell/lewdbot/settings"
+	"github.com/softashell/lewdbot/steam"
 )
 
 type Configuration struct {
@@ -58,5 +61,20 @@ func main() {
 		generateReply,
 		cleanMessage,
 	)
-	client.Main()
+
+	deaths := 0
+
+	for {
+		fmt.Println("Connecting to steam, deaths:", deaths)
+
+		err = client.Main()
+		if err != nil {
+			log.Println(err)
+			deaths++
+		}
+
+		fmt.Println("Restarting in 30 seconds")
+
+		time.Sleep(30 * time.Second)
+	}
 }

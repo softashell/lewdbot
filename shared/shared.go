@@ -1,7 +1,7 @@
 package shared
 
 type Network interface {
-	Main()
+	Main() error
 	ValidateChat(string) (bool, string)
 	ValidateUser(string) (bool, string)
 	ListChats() []string

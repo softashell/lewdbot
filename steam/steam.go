@@ -2,14 +2,15 @@ package steam
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
+
 	"github.com/Philipp15b/go-steam"
 	. "github.com/Philipp15b/go-steam/protocol/steamlang"
 	"github.com/Philipp15b/go-steam/socialcache"
 	"github.com/Philipp15b/go-steam/steamid"
 	"github.com/softashell/lewdbot/settings"
 	"github.com/softashell/lewdbot/shared"
-	"io/ioutil"
-	"log"
 )
 
 type Client struct {
@@ -168,7 +169,7 @@ func (c *Client) RemoveDeadFriends() bool {
 	return true
 }
 
-func (c *Client) Main() {
+func (c *Client) Main() error {
 	myLoginInfo := new(steam.LogOnDetails)
 	myLoginInfo.Username = c.Username
 	myLoginInfo.Password = c.Password
@@ -199,14 +200,12 @@ func (c *Client) Main() {
 				fmt.Scanf("%s", &authcode)
 				myLoginInfo.AuthCode = authcode
 			} else {
-				log.Print("LogOnFailedEvent: ", e.Result)
 				// TODO: Handle EResult_InvalidLoginAuthCode
-				return
+				return fmt.Errorf("LogOnFailedEvent: %s", e)
 			}
 		case *steam.DisconnectedEvent:
 			log.Print("Disconnected")
-			log.Print("Attempting to reconnect...")
-			c.client.Connect()
+			return fmt.Errorf("Disconnected from steam")
 		case *steam.ChatMsgEvent:
 			go c.chatMsgEvent(e)
 		case *steam.FriendAddedEvent:
@@ -224,9 +223,11 @@ func (c *Client) Main() {
 		case *steam.PersonaStateEvent:
 			go c.personaStateEvent(e)
 		case steam.FatalErrorEvent:
-			log.Print("FatalErrorEvent: ", e)
+			return fmt.Errorf("FatalErrorEvent: %s", e)
 		case error:
 			log.Print("error: ", e)
 		}
 	}
+
+	return nil
 }
