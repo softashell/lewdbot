@@ -2,17 +2,18 @@ package steam
 
 import (
 	"fmt"
+	"log"
+	"math/rand"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/Philipp15b/go-steam"
 	. "github.com/Philipp15b/go-steam/protocol/steamlang"
 	"github.com/Philipp15b/go-steam/socialcache"
 	"github.com/Philipp15b/go-steam/steamid"
 	"github.com/softashell/lewdbot/commands"
 	"github.com/softashell/lewdbot/regex"
-	"log"
-	"math/rand"
-	"os"
-	"strings"
-	"time"
 )
 
 func (c *Client) chatMsgEvent(e *steam.ChatMsgEvent) {
@@ -197,14 +198,21 @@ func (c *Client) friendsListEvent(e *steam.FriendsListEvent) {
 	}
 
 	// Lists pending group invites
-	for id, group := range c.client.Social.Groups.GetCopy() {
-		switch group.Relationship {
-		case EClanRelationship_Invited:
-			log.Printf("Pending invite to join group %s\n", c.link(id))
-
-			//TODO:Actually accept them, needs some work on go-steam
-		}
+	pendingInvites := c.client.Social.Groups.GetCopy()
+	if len(pendingInvites) > 0 {
+		fmt.Printf("%d pending group invites\n", len(pendingInvites))
 	}
+
+	/*
+		for id, group := range c.client.Social.Groups.GetCopy() {
+			switch group.Relationship {
+			case EClanRelationship_Invited:
+				log.Printf("Pending invite to join group %s\n", c.link(id))
+
+				//TODO:Actually accept them, needs some work on go-steam
+			}
+		}
+	*/
 
 	// Request missed chat messages when friends list is fully loaded
 	c.client.Social.RequestOfflineMessages()
