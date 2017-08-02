@@ -53,18 +53,20 @@ func main() {
 	settings = LoadSettings("data/lewdbot.db")
 	defer settings.Close()
 
-	client := steam.NewClient(
-		settings,
-		configuration.Username,
-		configuration.Password,
-		configuration.Master,
-		generateReply,
-		cleanMessage,
-	)
-
 	deaths := 0
 
 	for {
+		fmt.Println("Creating new steam client")
+
+		client := steam.NewClient(
+			settings,
+			configuration.Username,
+			configuration.Password,
+			configuration.Master,
+			generateReply,
+			cleanMessage,
+		)
+
 		fmt.Println("Connecting to steam, deaths:", deaths)
 
 		err = client.Main()
